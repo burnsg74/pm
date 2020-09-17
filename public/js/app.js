@@ -68946,6 +68946,7 @@ var files = __webpack_require__("./resources/js sync recursive \\.vue$/");
 files.keys().map(function (key) {
   return vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(key.split('/').pop().split('.')[0], files(key)["default"]);
 });
+Object(axios_progress_bar__WEBPACK_IMPORTED_MODULE_5__["loadProgressBar"])();
 vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuetify__WEBPACK_IMPORTED_MODULE_2___default.a);
 vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(_ckeditor_ckeditor5_vue__WEBPACK_IMPORTED_MODULE_8___default.a);
@@ -69925,8 +69926,8 @@ __webpack_require__.r(__webpack_exports__);
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! /Users/greg/Projects/pm2/resources/js/app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! /Users/greg/Projects/pm2/resources/sass/app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! /Users/greg/Projects/pm/resources/js/app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! /Users/greg/Projects/pm/resources/sass/app.scss */"./resources/sass/app.scss");
 
 
 /***/ })
