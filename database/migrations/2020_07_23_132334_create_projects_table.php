@@ -14,6 +14,7 @@ class CreateProjectsTable extends Migration
             function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('client_id')->nullable()->default(null)->constrained();
+                $table->foreignId('note_id')->nullable()->default(null)->constrained();
                 $table->string('code')->unique();
                 $table->string('name')->nullable()->default(null);
                 $table->text('description')->nullable()->default(null);

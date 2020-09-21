@@ -12,5 +12,8 @@ export default {
         SET_CLIENTS(state, payload) {
             state.data = payload
         },
+        UPDATE_CLIENTS(state, payload) {
+            state.data = payload
+        },
     },
 };

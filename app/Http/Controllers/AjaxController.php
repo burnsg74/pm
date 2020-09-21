@@ -8,6 +8,8 @@ use App\Models\Project;
 use App\Models\Task;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Parsedown;
 
 class AjaxController extends Controller
 {
@@ -41,7 +43,16 @@ class AjaxController extends Controller
 
     private function getClients(Request $request)
     {
-        return Client::all();
+        $clients = Client::all();
+        foreach ($clients as $client) {
+            $contents = file_get_contents($client->note->full_path);
+            $parsedown = new Parsedown();
+            $client->path = $client->note->full_path;
+            $client->markdown = $contents;
+            $client->html = $parsedown->text($contents);
+        }
+        return $clients;
+
     }
 
     private function postProject(Request $request)
@@ -56,7 +67,15 @@ class AjaxController extends Controller
 
     private function getProjects(Request $request)
     {
-        return Project::all();
+        $projects = Project::all();
+        foreach ($projects as $project) {
+            $contents = file_get_contents($project->note->full_path);
+            $parsedown = new Parsedown();
+            $project->path = $project->note->full_path;
+            $project->markdown = $contents;
+            $project->html = $parsedown->text($contents);
+        }
+        return $projects;
     }
 
     private function postTask(Request $request)
@@ -69,20 +88,28 @@ class AjaxController extends Controller
         return $this->getTasks($request);
     }
 
+    private function getTasks(Request $request)
+    {
+        $tasks = Task::all();
+        foreach ($tasks as $task) {
+            $contents = file_get_contents($task->note->full_path);
+            $parsedown = new Parsedown();
+            $task->path = $task->note->full_path;
+            $task->markdown = $contents;
+            $task->html = $parsedown->text($contents);
+        }
+        return $tasks;
+    }
+
     private function putTask(Request $request)
     {
-        $task       = Task::find($request->input('id'));
-        $task->code = $request->input('code');
-        $task->name = $request->input('name');
+        $task              = Task::find($request->input('id'));
+        $task->code        = $request->input('code');
+        $task->name        = $request->input('name');
         $task->description = $request->input('description');
         $task->save();
 
         return $this->getTasks($request);
-    }
-
-    private function getTasks(Request $request)
-    {
-        return Task::all();
     }
 
     private function postNote(Request $request)
@@ -97,5 +124,20 @@ class AjaxController extends Controller
     private function getNotes(Request $request)
     {
         return Note::all();
+        /*foreach ($notes as $note) {
+            Log::debug($note->full_path);
+            $contents = file_get_contents($note->full_path);
+            $parsedown = new Parsedown();
+            $note->path = $note->full_path;
+            $note->markdown = $contents;
+            $note->html = $parsedown->text($contents);
+        }
+        return $notes;*/
+    }
+
+    private function putNote(Request $request)
+    {
+        file_put_contents($request->input('path'), $request->input('markdown'));
+        return $this->getClients($request);
     }
 }

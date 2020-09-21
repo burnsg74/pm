@@ -10,13 +10,14 @@
     "require": {
         "php": "^7.4",
         "ext-json": "*",
+        "beyondcode/laravel-websockets": ">=1.6.1",
+        "erusev/parsedown": "^1.7",
         "fideloper/proxy": "^4.2",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.0",
         "laravel/tinker": "^2.0",
         "laravel/ui": "^3.0",
-        "beyondcode/laravel-websockets": ">=1.6.1",
         "pusher/pusher-php-server": ">=3.0",
         "symfony/panther": ">=0.7.1"
     },

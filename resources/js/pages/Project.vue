@@ -1,17 +1,22 @@
 <template>
     <v-container>
         <h1>Project: {{project.name}} ({{project.code}})</h1>
+        <v-row fluid v-on:dblclick="toggleEditor" @keydown.esc="toggleEditor">
+            <v-col md="12">
+                <v-card class="grey lighten-5">
+                    <div class="html-viewer" v-show="!isEditing" style="color: black" v-html="project.html"></div>
+                    <textarea class="html-viewer" rows="30" v-show="isEditing" v-model="markdown" style="width: 100%"></textarea>
+                </v-card>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 <script>
 export default {
     name: 'Project',
     data: () => ({
-        dialog: false,
-        name: null,
-        code: null,
-        date: null,
-        menu: false,
+        isEditing: false,
+        markdown: null,
     }),
     computed: {
         project: function () {
@@ -19,8 +24,25 @@ export default {
         }
     },
     methods: {
+        toggleEditor: function (event) {
+            this.isEditing = !this.isEditing
+            if (this.isEditing) {
+                this.markdown = this.project.markdown
+            } else {
+                let vue = this
+                axios.put('/ajax/note', {
+                    path: vue.project.path,
+                    markdown: vue.markdown,
+                }).then(function (res) {
+                    vue.$store.commit('SET_PROJECTS', res.data.payload)
+                })
+            }
+        },
     }
 }
 </script>
 <style scoped>
+.html-viewer {
+    padding: 10px;
+}
 </style>

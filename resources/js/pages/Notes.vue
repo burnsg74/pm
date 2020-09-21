@@ -5,7 +5,9 @@
         </h1>
         <v-list-item v-for="(note,idx) in notes" :key="note.id">
             <v-list-item-content>
-                <v-list-item-title>{{ note.name }} </v-list-item-title>
+                <v-list-item-title>
+                    <router-link :to="'/note/'+idx">{{ note.name }} </router-link>
+                </v-list-item-title>
             </v-list-item-content>
         </v-list-item>
         <v-dialog v-model="dialog" persistent max-width="600px">

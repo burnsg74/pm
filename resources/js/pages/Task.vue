@@ -1,25 +1,22 @@
 <template>
     <v-container>
         <h1>Task: {{task.name}} ({{task.code}})</h1>
-        <v-textarea
-            name="description"
-            filled
-            label="Description"
-            auto-grow
-            v-model="task.description"
-        ></v-textarea>
-        <v-btn small color="primary" @click="save">Save</v-btn>
+        <v-row fluid v-on:dblclick="toggleEditor" @keydown.esc="toggleEditor">
+            <v-col md="12">
+                <v-card class="grey lighten-5">
+                    <div class="html-viewer" v-show="!isEditing" style="color: black" v-html="task.html"></div>
+                    <textarea class="html-viewer" rows="30" v-show="isEditing" v-model="markdown" style="width: 100%"></textarea>
+                </v-card>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 <script>
 export default {
     name: 'Note',
     data: () => ({
-        dialog: false,
-        name: null,
-        code: null,
-        date: null,
-        menu: false,
+        isEditing: false,
+        markdown: null,
     }),
     computed: {
         task: function () {
@@ -27,6 +24,20 @@ export default {
         }
     },
     methods: {
+        toggleEditor: function (event) {
+            this.isEditing = !this.isEditing
+            if (this.isEditing) {
+                this.markdown = this.task.markdown
+            } else {
+                let vue = this
+                axios.put('/ajax/note', {
+                    path: vue.task.path,
+                    markdown: vue.markdown,
+                }).then(function (res) {
+                    vue.$store.commit('SET_TASKS', res.data.payload)
+                })
+            }
+        },
         save: function () {
             console.log('Save')
             this.dialog = false
@@ -46,4 +57,7 @@ export default {
 }
 </script>
 <style scoped>
+.html-viewer {
+    padding: 10px;
+}
 </style>

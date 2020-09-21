@@ -9,7 +9,6 @@
                                 <router-link class="white--text" to="/clients">Clients</router-link>
                             </v-col>
                             <v-col class="text-right">
-                                <router-link class="white--text " to="/client/add"> +</router-link>
                             </v-col>
                         </v-row>
                     </v-card-title>
@@ -66,7 +65,6 @@
                                 <router-link class="white--text" to="/tasks">Tasks</router-link>
                             </v-col>
                             <v-col class="text-right">
-                                <router-link class="white--text " to="/task/add"> +</router-link>
                             </v-col>
                         </v-row>
                     </v-card-title>
@@ -89,23 +87,6 @@
                     </v-card-text>
                 </v-card>
             </v-col>
-            <!--            <v-col>
-                            <v-card class="mx-auto">
-                                <v-card-title class="green lighten-3">
-                                    <v-row no-gutters >
-                                    <v-col>
-                                        <router-link class="white&#45;&#45;text" to="/tasks">Leads</router-link>
-                                    </v-col>
-                                    <v-col class="text-right">
-                                        <router-link class="white&#45;&#45;text " to="/tasks/add"> +</router-link>
-                                    </v-col>
-                                    </v-row>
-                                </v-card-title>
-                                <v-card-text>
-                                    Tasks
-                                </v-card-text>
-                            </v-card>
-                        </v-col>-->
             <v-col>
                 <v-card class="mx-auto">
                     <v-card-title class="amber lighten-3">
@@ -114,7 +95,6 @@
                                 <router-link class="white--text" to="/notes">Notes</router-link>
                             </v-col>
                             <v-col class="text-right">
-                                <router-link class="white--text " to="/note/create"> +</router-link>
                             </v-col>
                         </v-row>
                     </v-card-title>

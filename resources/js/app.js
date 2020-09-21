@@ -6,8 +6,6 @@ import Axios from 'axios';
 import { loadProgressBar } from 'axios-progress-bar'
 import 'axios-progress-bar/dist/nprogress.css'
 import store from './store/index';
-import CKEditor from '@ckeditor/ckeditor5-vue';
-
 
 window.Vue = Vue;
 window.axios = Axios
@@ -20,7 +18,8 @@ loadProgressBar()
 
 Vue.use(VueRouter);
 Vue.use(Vuetify);
-Vue.use(CKEditor);
+
+import Clock from "../js/components/Clock";
 
 const app = new Vue({
     name:"App",
@@ -28,6 +27,7 @@ const app = new Vue({
     vuetify: new Vuetify(),
     router,
     store,
+    components: {Clock},
     data: () => ({
         drawer: null,
         drawerRight: null,

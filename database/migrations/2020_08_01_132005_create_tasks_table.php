@@ -17,9 +17,13 @@ class CreateTasksTable extends Migration
             $table->id();
             $table->foreignId('client_id')->nullable()->default(null)->constrained();
             $table->foreignId('project_id')->nullable()->default(null)->constrained();
+            $table->foreignId('note_id')->nullable()->default(null)->constrained();
             $table->string('code')->nullable()->default(null);
             $table->string('name')->nullable()->default(null);
             $table->text('description')->nullable()->default(null);
+            $table->enum('status',['Backlog','In-Progress','Hold','Done'])->default('Backlog');
+            $table->dateTime('started_at')->nullable()->default(null);
+            $table->integer('duration')->default(15);
             $table->timestamps();
         });
 

@@ -66,6 +66,7 @@
         <v-breadcrumbs :items="items">
         </v-breadcrumbs>
         <v-spacer></v-spacer>
+        <clock></clock>
     </v-system-bar>
     <v-main>
         <router-view></router-view>
