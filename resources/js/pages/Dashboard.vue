@@ -79,16 +79,6 @@
         <v-row>
             <v-col>
                 <v-card class="mx-auto">
-                    <v-card-title class="teal lighten-3 white--text">
-                        <router-link class="white--text" to="/calendar">Calendar</router-link>
-                    </v-card-title>
-                    <v-card-text>
-                        Calendar
-                    </v-card-text>
-                </v-card>
-            </v-col>
-            <v-col>
-                <v-card class="mx-auto">
                     <v-card-title class="amber lighten-3">
                         <v-row no-gutters>
                             <v-col>

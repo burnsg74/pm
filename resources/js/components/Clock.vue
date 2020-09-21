@@ -1,5 +1,5 @@
 <template>
-    <span class="clock">{{currentDateTime}}</span>
+    <router-link class="clock" to="/calendar"><span class="clock">{{currentDateTime}}</span></router-link>
 </template>
 
 <script>
@@ -35,5 +35,6 @@
 <style scoped>
 .clock {
     color: rgb(17, 236, 229);
+    text-decoration: none;
 }
 </style>
