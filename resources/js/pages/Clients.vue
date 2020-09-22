@@ -6,7 +6,7 @@
         <v-list-item v-for="(client,idx) in clients" :key="client.id">
             <v-list-item-content>
                 <v-list-item-title>
-                    <router-link :to="'/client/'+idx">{{ client.name }} ({{ client.code }})</router-link>
+                    <router-link :to="'/client/'+client.id">{{ client.name }} ({{ client.code }})</router-link>
                 </v-list-item-title>
             </v-list-item-content>
         </v-list-item>

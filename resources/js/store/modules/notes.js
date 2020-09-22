@@ -3,8 +3,10 @@ export default {
         data: [],
     },
     getters: {
-        getNote: state => (idx) => {
-            return state.data[idx]
+        getNote: state => (id) => {
+            return state.data.find(
+                item => item.id == id
+            );
         }
     },
     actions: {},

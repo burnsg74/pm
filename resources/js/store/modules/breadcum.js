@@ -6,5 +6,8 @@ export default {
     },
     actions: {},
     mutations: {
+        SET_BREADCUM(state, payload) {
+            state.data = payload
+        },
     },
 };

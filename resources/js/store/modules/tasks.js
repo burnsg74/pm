@@ -3,8 +3,11 @@ export default {
         data: [],
     },
     getters: {
-        getTask: state => (idx) => {
-            return state.data[idx]
+        getTask: state => (id) => {
+            return state.data.find(
+                item => item.id == id
+
+            );
         }
     },
     actions: {},

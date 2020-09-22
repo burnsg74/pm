@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import breadcum from './modules/breadcum'
 import clients from './modules/clients'
 import projects from './modules/projects'
 import tasks from './modules/tasks'
@@ -17,6 +18,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     strict: true,
     modules: {
+        breadcum,
         clients,
         projects,
         tasks,

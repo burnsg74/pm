@@ -41,6 +41,11 @@ const app = new Vue({
             },
         ],
     }),
+    computed: {
+        breadcums: function () {
+            return this.$store.state.breadcum.data
+        }
+    },
     created () {
         this.$vuetify.theme.dark = true
     },

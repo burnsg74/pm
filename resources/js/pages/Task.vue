@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <h1>Task: {{task.name}} ({{task.code}})</h1>
+        <h2>{{task.code}} :: {{task.name}} </h2>
         <v-row fluid v-on:dblclick="toggleEditor" @keydown.esc="toggleEditor">
             <v-col md="12">
                 <v-card class="grey lighten-5">
@@ -18,6 +18,31 @@ export default {
         isEditing: false,
         markdown: null,
     }),
+    mounted() {
+        let task = this.$store.getters.getTask(this.$route.params.id)
+        this.$store.commit('SET_BREADCUM', [
+            {
+                text: 'Dashboard',
+                disabled: false,
+                to: '/',
+            },
+            {
+                text: 'Client',
+                disabled: false,
+                to: '/client/'+task.client_id,
+            },
+            {
+                text: 'Project',
+                disabled: false,
+                to: '/project/'+task.project_id,
+            },
+            {
+                text: 'Tasks',
+                disabled: false,
+                to: '/tasks',
+            },
+        ])
+    },
     computed: {
         task: function () {
             return this.$store.getters.getTask(this.$route.params.id)

@@ -63,7 +63,7 @@
         dense
     >
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-breadcrumbs :items="items">
+        <v-breadcrumbs :items="breadcums">
         </v-breadcrumbs>
         <v-spacer></v-spacer>
         <clock></clock>

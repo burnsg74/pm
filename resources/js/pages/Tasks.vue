@@ -3,10 +3,10 @@
         <h1>Tasks
             <v-icon @click="refresh">refresh</v-icon>
         </h1>
-        <v-list-item v-for="(task,idx) in tasks" :key="task.id">
+        <v-list-item v-for="task in tasks" :key="task.id">
             <v-list-item-content>
                 <v-list-item-title>
-                    <router-link :to="'/task/'+idx">{{ task.name }} ({{ task.code }})</router-link></v-list-item-title>
+                    <router-link :to="'/task/'+task.id">{{ task.name }} ({{ task.code }})</router-link></v-list-item-title>
             </v-list-item-content>
         </v-list-item>
         <v-dialog v-model="dialog" persistent max-width="600px">

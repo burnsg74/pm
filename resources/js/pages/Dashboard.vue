@@ -14,7 +14,7 @@
                     </v-card-title>
                     <v-card-text>
                         <div v-for="(task,idx) in tasks" :key="task.id">
-                            <router-link :to="'/task/'+idx">{{ task.code }} - {{ task.name }}</router-link>
+                            <router-link :to="'/task/'+task.id">{{ task.code }} :: {{ task.name }}</router-link>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -47,6 +47,15 @@ export default {
         notes: function () {
             return this.$store.state.notes.data
         }
+    },
+    mounted() {
+        this.$store.commit('SET_BREADCUM', [
+            {
+                text: 'Dashboard',
+                disabled: false,
+                to: '/',
+            }
+        ])
     },
 }
 </script>

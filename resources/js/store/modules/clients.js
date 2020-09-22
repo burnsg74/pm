@@ -3,8 +3,11 @@ export default {
         data: [],
     },
     getters: {
-        getClient: state => (idx) => {
-            return state.data[idx]
+
+        getClient: state => (id) => {
+            return state.data.find(
+                item => item.id == id
+            );
         }
     },
     actions: {},
