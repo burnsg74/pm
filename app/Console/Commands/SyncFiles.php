@@ -122,27 +122,33 @@ class SyncFiles extends Command
                 }
 
                 if ($folder === 'tasks' && !empty($folders[$index + 1])) {
-                    $taskCode = strtoupper($folders[$index + 1]);
+                    $taskCode = strtoupper($folders[$index + 2]);
 
-                    if ($task === null || $task->code !== $taskCode) {
-                        $task = Task::firstOrCreate(['code' => $taskCode]);
-                    }
+                    if (!empty($folders[$index + 3]) && $folders[$index + 3] === 'index.md') {
+                        if ($task === null || $task->code !== $taskCode) {
+                            $task = Task::firstOrCreate(['code' => $taskCode]);
+                        }
 
-                    if ($task->client_id !== $client->id) {
-                        $task->client_id = $client->id;
-                        $task->save();
-                    }
+                        if ($task->client_id !== $client->id) {
+                            $task->client_id = $client->id;
+                            $task->save();
+                        }
 
-                    if ($task->project_id !== $project->id) {
-                        $task->project_id = $project->id;
-                        $task->save();
-                    }
+                        if ($task->project_id !== $project->id) {
+                            $task->project_id = $project->id;
+                            $task->save();
+                        }
 
-                    if (!empty($folders[$index + 2]) && $folders[$index + 2] === 'index.md') {
                         if ($task->note_id !== $note->id) {
                             $task->note_id = $note->id;
                             $task->save();
                         }
+
+                        if ($task->status !== $folders[$index + 1]) {
+                            $task->status = $folders[$index + 1];
+                            $task->save();
+                        }
+
                         if ((!empty($tags['name'])) && $project->name !== $tags['name']) {
                             $task->name = $tags['name'];
                             $task->save();
@@ -151,8 +157,8 @@ class SyncFiles extends Command
                             $task->started_at = $tags['started_at'];
                             $task->save();
                         }
-                        if ((!empty($tags['status'])) && $task->status !== $tags['status']) {
-                            $task->status = $tags['status'];
+                        if ((!empty($tags['completed_at'])) && $task->completed_at !== $tags['completed_at']) {
+                            $task->completed_at = $tags['completed_at'];
                             $task->save();
                         }
                         if ((!empty($tags['duration'])) && $task->duration !== $tags['duration']) {

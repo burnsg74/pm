@@ -23,6 +23,7 @@ class CreateTasksTable extends Migration
             $table->text('description')->nullable()->default(null);
             $table->enum('status',['Backlog','In-Progress','Hold','Done'])->default('Backlog');
             $table->dateTime('started_at')->nullable()->default(null);
+            $table->dateTime('completed_at')->nullable()->default(null);
             $table->integer('duration')->default(15);
             $table->timestamps();
         });
