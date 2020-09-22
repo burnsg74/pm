@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <h2>{{task.code}} :: {{task.name}} </h2>
+        <h2>{{task.code}} :: <span v-if="!task.name">Not Set</span><span v-else>{{task.name}}</span> </h2>
         <v-row fluid v-on:dblclick="toggleEditor" @keydown.esc="toggleEditor">
             <v-col md="12">
                 <v-card class="grey lighten-5">

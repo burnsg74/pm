@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <h1>Client: {{ client.name }} ({{ client.code }})</h1>
+        <h1> {{ client.code }} :: {{ client.name }}</h1>
         <v-row fluid v-on:dblclick="toggleEditor" @keydown.esc="toggleEditor">
             <v-col md="12">
                 <v-card class="grey lighten-5">
