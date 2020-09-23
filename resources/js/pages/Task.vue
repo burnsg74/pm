@@ -1,12 +1,26 @@
 <template>
-    <v-container>
-        <h2>{{task.code}} :: <span v-if="!task.name">Not Set</span><span v-else>{{task.name}}</span> </h2>
-        <v-row fluid v-on:dblclick="toggleEditor" @keydown.esc="toggleEditor">
-            <v-col md="12">
-                <v-card class="grey lighten-5">
-                    <div class="html-viewer" v-show="!isEditing" style="color: black" v-html="task.html"></div>
-                    <textarea class="html-viewer" rows="30" v-show="isEditing" v-model="markdown" style="width: 100%"></textarea>
-                </v-card>
+    <v-container fluid>
+        <v-row>
+            <v-col cols="10">
+                <h2>{{ task.code }} :: <span v-if="!task.name">Not Set</span><span v-else>{{ task.name }}</span></h2>
+                <v-row fluid v-on:dblclick="toggleEditor" @keydown.esc="toggleEditor">
+                    <v-col md="12">
+                        <v-card class="grey lighten-5">
+                            <div v-show="!isEditing" class="html-viewer" style="color: black" v-html="task.html"></div>
+                            <textarea v-show="isEditing" v-model="markdown" class="html-viewer" rows="30"
+                                      style="width: 100%"></textarea>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-col>
+            <v-col cols="2">
+                <v-select
+                    v-model="selectedStatus"
+                    :items="statuses"
+                    dense
+                    label="Status"
+                    @change="updateStatus"
+                ></v-select>
             </v-col>
         </v-row>
     </v-container>
@@ -15,11 +29,14 @@
 export default {
     name: 'Note',
     data: () => ({
+        selectedStatus: 'Backlog',
         isEditing: false,
         markdown: null,
+        statuses: ['Backlog', 'In-Progress', 'Hold', 'Done']
     }),
     mounted() {
         let task = this.$store.getters.getTask(this.$route.params.id)
+        this.selectedStatus = task.status
         this.$store.commit('SET_BREADCUM', [
             {
                 text: 'Dashboard',
@@ -29,12 +46,12 @@ export default {
             {
                 text: 'Client',
                 disabled: false,
-                to: '/client/'+task.client_id,
+                to: '/client/' + task.client_id,
             },
             {
                 text: 'Project',
                 disabled: false,
-                to: '/project/'+task.project_id,
+                to: '/project/' + task.project_id,
             },
             {
                 text: 'Tasks',
@@ -62,6 +79,22 @@ export default {
                     vue.$store.commit('SET_TASKS', res.data.payload)
                 })
             }
+        },
+        updateStatus: function () {
+            let vue = this
+            axios.put('/ajax/task', {
+                id: this.task.id,
+                status: this.selectedStatus,
+            }).then(res => {
+                console.log(res.data.payload);
+                let payload = {
+                    id: vue.task.id,
+                    status: vue.selectedStatus
+                }
+                vue.$store.commit('SET_TASK_STATUS', payload)
+            }).catch(error => {
+                console.log(error.response)
+            })
         },
         save: function () {
             console.log('Save')

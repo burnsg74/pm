@@ -45,14 +45,13 @@ class AjaxController extends Controller
     {
         $clients = Client::all();
         foreach ($clients as $client) {
-            $contents = file_get_contents($client->note->full_path);
-            $parsedown = new Parsedown();
-            $client->path = $client->note->full_path;
+            $contents         = file_get_contents($client->note->full_path);
+            $parsedown        = new Parsedown();
+            $client->path     = $client->note->full_path;
             $client->markdown = $contents;
-            $client->html = $parsedown->text($contents);
+            $client->html     = $parsedown->text($contents);
         }
         return $clients;
-
     }
 
     private function postProject(Request $request)
@@ -69,11 +68,11 @@ class AjaxController extends Controller
     {
         $projects = Project::all();
         foreach ($projects as $project) {
-            $contents = file_get_contents($project->note->full_path);
-            $parsedown = new Parsedown();
-            $project->path = $project->note->full_path;
+            $contents          = file_get_contents($project->note->full_path);
+            $parsedown         = new Parsedown();
+            $project->path     = $project->note->full_path;
             $project->markdown = $contents;
-            $project->html = $parsedown->text($contents);
+            $project->html     = $parsedown->text($contents);
         }
         return $projects;
     }
@@ -92,24 +91,34 @@ class AjaxController extends Controller
     {
         $tasks = Task::all();
         foreach ($tasks as $task) {
-            $contents = file_get_contents($task->note->full_path);
-            $parsedown = new Parsedown();
-            $task->path = $task->note->full_path;
+            $contents       = file_get_contents($task->note->full_path);
+            $parsedown      = new Parsedown();
+            $task->path     = $task->note->full_path;
             $task->markdown = $contents;
-            $task->html = $parsedown->text($contents);
+            $task->html     = $parsedown->text($contents);
         }
         return $tasks;
     }
 
     private function putTask(Request $request)
     {
-        $task              = Task::find($request->input('id'));
-        $task->code        = $request->input('code');
-        $task->name        = $request->input('name');
-        $task->description = $request->input('description');
-        $task->save();
+        $id        = $request->input('id');
+        $newStatus = $request->input('status');
 
-        return $this->getTasks($request);
+        $task = Task::find($id);
+        if ($task->status !== $newStatus) {
+            $task->status = $newStatus;
+            $task->save();
+
+            $note                   = $task->note;
+            $folders                = explode('/', $note->folder);
+            $statusFolder           = count($folders) - 2;
+            $folders[$statusFolder] = $newStatus;
+            $newPath                = implode('/', $folders);
+            return rename($note->full_path, $newPath);
+        }
+
+        return true;
     }
 
     private function postNote(Request $request)
