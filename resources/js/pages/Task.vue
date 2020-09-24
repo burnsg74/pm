@@ -27,7 +27,7 @@
 </template>
 <script>
 export default {
-    name: 'Note',
+    name: 'Task',
     data: () => ({
         selectedStatus: 'Backlog',
         isEditing: false,

@@ -8,6 +8,7 @@ import Project from "./pages/Project";
 import Notes from "./pages/Notes";
 import Note from "./pages/Note";
 import Tasks from "./pages/Tasks";
+import TaskNew from "./pages/TaskNew";
 import Task from "./pages/Task";
 
 export default new VueRouter({
@@ -42,6 +43,11 @@ export default new VueRouter({
             name: 'tasks',
             path: '/tasks',
             component: Tasks
+        },
+        {
+            name:'task-new',
+            path: '/task-new',
+            component: TaskNew
         },
         {
             name: 'task',

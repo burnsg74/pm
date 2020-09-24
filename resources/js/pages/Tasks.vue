@@ -18,6 +18,9 @@
                 </v-list>
             </v-col>
             <v-col cols="2">
+                <span class="pb-3">
+                <v-btn small color="primary" to="/task-new">Add new task</v-btn>
+                </span>
                 <v-select
                     v-model="selectedClient"
                     :items="clients"

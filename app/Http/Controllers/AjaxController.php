@@ -6,9 +6,9 @@ use App\Models\Client;
 use App\Models\Note;
 use App\Models\Project;
 use App\Models\Task;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Parsedown;
 
 class AjaxController extends Controller
@@ -79,18 +79,60 @@ class AjaxController extends Controller
 
     private function postTask(Request $request)
     {
-        $task       = new Task();
-        $task->code = $request->input('code');
-        $task->name = $request->input('name');
+        // /Users/greg/notes/clients/sn/projects/sn/tasks/Backlog/sn-13/
+
+        $client      = Client::find($request->input('client_id'));
+        $clientCode  = strtolower($client->code);
+        $project     = Project::find($request->input('project_id'));
+        $projectCode = strtolower($project->code);
+        $ticket      = strtolower($request->input('ticket'));
+        $name        = $request->input('name');
+        $status      = $request->input('status');
+        $nameMeta    = "<meta name='name' content='{$name}'>";
+        $fullPath    = "/Users/greg/notes/clients/{$clientCode}/projects/{$projectCode}/tasks/{$status}/{$ticket}";
+        $content     = $nameMeta . PHP_EOL . $request->input('markdown');
+
+        if (!file_exists($fullPath)) {
+            mkdir($fullPath, 0777, true);
+        }
+
+        $fullPath    = $fullPath . "/index.md";
+        file_put_contents($fullPath,$content);
+
+        $pathInfo = pathinfo($fullPath);
+        $stat     = stat($fullPath);
+        $hash     = md5($fullPath);
+
+        $note                   = new Note();
+        $note->name             = $pathInfo['filename'];
+        $note->filename         = $pathInfo['basename'];
+        $note->folder           = $pathInfo['dirname'];
+        $note->ext              = $pathInfo['extension'] ?? '';
+        $note->file_size        = $stat['size'];
+        $note->full_path        = $fullPath;
+        $note->full_path_hash   = $hash;
+        $note->file_accessed_at = Carbon::createFromTimestamp($stat['atime'])->toDateTimeString();
+        $note->file_modified_at = Carbon::createFromTimestamp($stat['mtime'])->toDateTimeString();
+        $note->file_created_at  = Carbon::createFromTimestamp($stat['ctime'])->toDateTimeString();
+        $note->save();
+
+        $task             = new Task();
+        $task->client_id  = $client->id;
+        $task->project_id = $project->id;
+        $task->note_id    = $note->id;
+        $task->code       = $ticket;
+        $task->name       = $name;
+        $task->status     = $status;
         $task->save();
 
-        return $this->getTasks($request);
+        return true;
     }
 
     private function getTasks(Request $request)
     {
         $tasks = Task::all();
         foreach ($tasks as $task) {
+            if (!file_exists($task->note->full_path)) continue;
             $contents       = file_get_contents($task->note->full_path);
             $parsedown      = new Parsedown();
             $task->path     = $task->note->full_path;

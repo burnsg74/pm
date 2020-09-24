@@ -5,9 +5,5 @@
 @import "~@mdi/font/css/materialdesignicons.min.css";
 @import "~material-design-icons-iconfont/dist/material-design-icons.css";
 
-.ck-editor__editable {
-    min-height: 200px;
-}
-
 [v-cloak] > * { display:none; }
 [v-cloak]::before { content: "loading..."; }
