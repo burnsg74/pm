@@ -12,4 +12,9 @@ class Project extends Model
     {
         return $this->belongsTo('App\Models\Note', 'note_id');
     }
+
+    public function tasks()
+    {
+        return $this->hasMany('App\Models\Task');
+    }
 }

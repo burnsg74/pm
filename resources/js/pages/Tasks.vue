@@ -8,13 +8,15 @@
                             <v-icon @click="refresh">refresh</v-icon>
                         </h2>
                     </v-subheader>
-                    <v-list-item v-for="task in tasks" :key="task.id">
-                        <v-list-item-content>
-                            <v-list-item-title>
-                                <router-link :to="'/task/'+task.id">{{ task.code }} :: {{ task.name }}</router-link>
-                            </v-list-item-title>
-                        </v-list-item-content>
-                    </v-list-item>
+                    <draggable v-model="tasks" group="people" @start="drag=true" @end="drag=false">
+                        <v-list-item v-for="task in tasks" :key="task.id">
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    <router-link :to="'/task/'+task.id">{{ task.code }} :: {{ task.name }}</router-link>
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                    </draggable>
                 </v-list>
             </v-col>
             <v-col cols="2">
@@ -42,16 +44,26 @@
     </v-container>
 </template>
 <script>
+import draggable from 'vuedraggable'
 export default {
     name: 'Tasks',
+    components: {
+        draggable,
+    },
     data: () => ({
         selectedClient: null,
         selectedStatus: null,
         statuses: ['Backlog', 'In-Progress', 'Hold', 'Done']
     }),
     computed: {
-        tasks: function () {
-            return this.$store.getters.getTasks(this.selectedClient, this.selectedStatus)
+        tasks: {
+            get() {
+                return this.$store.getters.getTasks(this.selectedClient, this.selectedStatus)
+            },
+            set(value) {
+                console.log('Set Task',value)
+                this.$store.commit('SET_TASKS', value)
+            }
         },
         clients: function () {
             return this.$store.state.clients.data

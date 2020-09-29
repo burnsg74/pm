@@ -2,29 +2,49 @@
     <v-container>
         <v-row>
             <v-col>
-                <v-card class="mx-auto">
-                    <v-card-title class="cyan lighten-2">
-                        <v-row no-gutters>
-                            <v-col>
-                                <router-link class="white--text" to="/tasks">Tasks</router-link>
-                            </v-col>
-                            <v-col class="text-right">
-                            </v-col>
-                        </v-row>
-                    </v-card-title>
-                    <v-card-text>
-                        <div v-for="(task,idx) in tasks" :key="task.id">
-                            <router-link :to="'/task/'+task.id">{{ task.code }} :: {{ task.name }}</router-link>
-                        </div>
-                    </v-card-text>
-                </v-card>
+                <draggable v-model="clients" group="clients" @end="drag=false" @start="drag=true">
+                    <v-card v-for="client in clients" :key="client.id"
+                            class="mx-auto mb-1"
+                            dark
+                            elevation="10">
+                        <v-card-text>
+                            <v-row>
+                                <v-col cols="3">
+                                    <router-link :to="'/client/'+client.id"><h3>{{ client.code }} :: {{
+                                            client.name
+                                        }}</h3></router-link>
+                                </v-col>
+                                <v-col v-for="(project,idx) in client.projects" :key="project.id"
+                                       cols="5" class="mr-2">
+                                    <router-link :to="'/project/'+project.id">{{project.code}}</router-link>
+                                    <v-row>
+                                        <v-col>
+                                            Backlog: {{project.tasks.Backlog.length}}
+                                        </v-col>
+                                        <v-col>
+                                            In-progress: {{project.tasks['In-Progress'].length}}
+                                        </v-col>
+                                        <v-col>
+                                            Hold: {{project.tasks.Hold.length}}
+                                        </v-col>
+                                    </v-row>
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                    </v-card>
+                </draggable>
             </v-col>
         </v-row>
     </v-container>
 </template>
 <script>
+import draggable from 'vuedraggable'
+
 export default {
     name: 'Dashboard',
+    components: {
+        draggable,
+    },
     data: () => ({
         items: [
             {
@@ -35,18 +55,14 @@ export default {
         ],
     }),
     computed: {
-        clients: function () {
-            return this.$store.state.clients.data
+        clients: {
+            get() {
+                return this.$store.state.clients.data
+            },
+            set(value) {
+                this.$store.commit('SET_CLIENTS', value)
+            }
         },
-        projects: function () {
-            return this.$store.state.projects.data
-        },
-        tasks: function () {
-            return this.$store.state.tasks.data
-        },
-        notes: function () {
-            return this.$store.state.notes.data
-        }
     },
     mounted() {
         this.$store.commit('SET_BREADCUM', [

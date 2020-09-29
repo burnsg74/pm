@@ -12,4 +12,9 @@ class Client extends Model
     {
         return $this->belongsTo('App\Models\Note', 'note_id');
     }
+
+    public function projects()
+    {
+        return $this->hasMany('App\Models\Project');
+    }
 }

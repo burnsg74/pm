@@ -43,15 +43,50 @@ class AjaxController extends Controller
 
     private function getClients(Request $request)
     {
-        $clients = Client::all();
+        $parsedown = new Parsedown();
+        $res       = [];
+        $clients   = Client::all();
         foreach ($clients as $client) {
-            $contents         = file_get_contents($client->note->full_path);
-            $parsedown        = new Parsedown();
-            $client->path     = $client->note->full_path;
-            $client->markdown = $contents;
-            $client->html     = $parsedown->text($contents);
+            $item = $client->toArray();
+            if (file_exists($client->note->full_path)) {
+                $contents         = file_get_contents($client->note->full_path);
+                $item['path']     = $client->note->full_path;
+                $item['markdown'] = $contents;
+                $item['html']     = $parsedown->text($contents);
+            }
+
+            $item['projects'] = [];
+            foreach ($client->projects as $project) {
+                $p = $project->toArray();
+                if (file_exists($project->note->full_path)) {
+                    $contents      = file_get_contents($project->note->full_path);
+                    $p['path']     = $project->note->full_path;
+                    $p['markdown'] = $contents;
+                    $p['html']     = $parsedown->text($contents);
+                }
+                $p['tasks'] = [
+                    'Backlog'     => [],
+                    'In-Progress' => [],
+                    'Hold'        => [],
+                    'Done'        => []
+                ];
+                foreach ($project->tasks as $task) {
+                    $t = $task->toArray();
+                    if (file_exists($task->note->full_path)) {
+                        $contents      = file_get_contents($task->note->full_path);
+                        $t['path']     = $task->note->full_path;
+                        $t['markdown'] = $contents;
+                        $t['html']     = $parsedown->text($contents);
+                    }
+                    $p['tasks'][$task->status][] = $t;
+                }
+                $item['projects'][] = $p;
+            }
+
+            $res[] = $item;
         }
-        return $clients;
+
+        return $res;
     }
 
     private function postProject(Request $request)
@@ -81,23 +116,31 @@ class AjaxController extends Controller
     {
         // /Users/greg/notes/clients/sn/projects/sn/tasks/Backlog/sn-13/
 
-        $client      = Client::find($request->input('client_id'));
-        $clientCode  = strtolower($client->code);
-        $project     = Project::find($request->input('project_id'));
-        $projectCode = strtolower($project->code);
-        $ticket      = strtolower($request->input('ticket'));
-        $name        = $request->input('name');
-        $status      = $request->input('status');
-        $nameMeta    = "<meta name='name' content='{$name}'>";
-        $fullPath    = "/Users/greg/notes/clients/{$clientCode}/projects/{$projectCode}/tasks/{$status}/{$ticket}";
-        $content     = $nameMeta . PHP_EOL . $request->input('markdown');
+        $client       = Client::find($request->input('client_id'));
+        $clientCode   = strtolower($client->code);
+        $project      = Project::find($request->input('project_id'));
+        $projectCode  = strtolower($project->code);
+        $ticket       = strtolower($request->input('ticket'));
+        $name         = $request->input('name');
+        $started_at   = $request->input('started_at') ?? '';
+        $completed_at = $request->input('completed_at') ?? '';
+        $duration     = $request->input('duration') ?? 15;
+        $order        = $request->input('order') ?? 0;
+        $status       = $request->input('status');
+        $meta         = "<meta name='name' content='{$name}'>".PHP_EOL;
+        $meta         .= "<meta name='started_at' content='{$started_at}'>".PHP_EOL;
+        $meta         .= "<meta name='completed_at' content='{$completed_at}'>".PHP_EOL;
+        $meta         .= "<meta name='duration' content='{$duration}'>".PHP_EOL;
+        $meta         .= "<meta name='order' content='{$order}'>".PHP_EOL;
+        $fullPath     = "/Users/greg/notes/clients/{$clientCode}/projects/{$projectCode}/tasks/{$status}/{$ticket}";
+        $content      = $meta . PHP_EOL . $request->input('markdown');
 
         if (!file_exists($fullPath)) {
             mkdir($fullPath, 0777, true);
         }
 
-        $fullPath    = $fullPath . "/index.md";
-        file_put_contents($fullPath,$content);
+        $fullPath = $fullPath . "/index.md";
+        file_put_contents($fullPath, $content);
 
         $pathInfo = pathinfo($fullPath);
         $stat     = stat($fullPath);

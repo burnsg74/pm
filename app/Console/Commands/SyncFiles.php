@@ -165,6 +165,10 @@ class SyncFiles extends Command
                             $task->duration = $tags['duration'];
                             $task->save();
                         }
+                        if ((!empty($tags['order'])) && $task->duration !== $tags['order']) {
+                            $task->duration = $tags['order'];
+                            $task->save();
+                        }
                     }
                 }
             }

@@ -18,6 +18,7 @@ class CreateTasksTable extends Migration
             $table->foreignId('client_id')->nullable()->default(null)->constrained();
             $table->foreignId('project_id')->nullable()->default(null)->constrained();
             $table->foreignId('note_id')->nullable()->default(null)->constrained();
+            $table->integer('order')->default(0);
             $table->string('code')->nullable()->default(null);
             $table->string('name')->nullable()->default(null);
             $table->text('description')->nullable()->default(null);
