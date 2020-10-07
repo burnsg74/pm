@@ -2,8 +2,6 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import breadcum from './modules/breadcum'
 import clients from './modules/clients'
-import projects from './modules/projects'
-import tasks from './modules/tasks'
 import notes from './modules/notes'
 import VuexPersist from 'vuex-persist'
 export const strict = false
@@ -20,8 +18,6 @@ export default new Vuex.Store({
     modules: {
         breadcum,
         clients,
-        projects,
-        tasks,
         notes,
     },
     plugins: [vuexPersist.plugin]
