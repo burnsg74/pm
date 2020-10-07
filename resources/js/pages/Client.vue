@@ -198,8 +198,13 @@ export default {
         currentStatus: function () {
             return this.$store.getters.getSelectedTaskStatus()
         },
-        tasks: function () {
-            return this.$store.getters.getTasks()
+        tasks: {
+            get() {
+                return this.$store.getters.getTasks()
+            },
+            set(value) {
+                this.$store.commit('SET_TASK_ORDER', value)
+            }
         },
         task: {
             get() {

@@ -105,5 +105,9 @@ export default {
                 .projects[state.selectedProjectIdx]
                 .tasks[state.selectedTaskStatus][state.selectedTaskIdx] = payload*/
         },
+        SET_TASK_ORDER(state, payload) {
+            state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus] = payload
+            // @TODO Save to backend
+        },
     },
 };
