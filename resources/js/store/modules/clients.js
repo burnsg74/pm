@@ -11,6 +11,7 @@ export default {
             return state.data
         },
         getClient: state => () => {
+            console.log(state.selectedClientIdx);
             return state.data[state.selectedClientIdx]
         },
         getClientById: state => (id) => {
@@ -37,6 +38,9 @@ export default {
         },
         setSelectedTaskStatus ({commit}, status) {
             commit('SET_SELECTED_TASK_STATUS', status)
+        },
+        setSelectedClientIdx ({commit}, idx) {
+            commit('SET_CLIENT_IDX', idx)
         },
         setSelectedTaskIdx ({commit}, idx) {
             commit('SET_SELECTED_TASK_IDX', idx)

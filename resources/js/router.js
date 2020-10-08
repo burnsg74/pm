@@ -2,7 +2,7 @@ import VueRouter from "vue-router";
 import Dashboard from "./pages/Dashboard";
 import Calendar from "./pages/Calendar";
 import Clients from "./pages/Clients";
-import Client from "./pages/Client";
+import Client from "./pages/Dashboard";
 import Notes from "./pages/Notes";
 import Note from "./pages/Note";
 

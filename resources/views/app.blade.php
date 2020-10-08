@@ -14,17 +14,7 @@
 </head>
 <body>
 <v-app id="app" v-cloak>
-    <v-system-bar
-        app
-        clipped-left
-        dark
-        dense
-    >
-        <v-breadcrumbs :items="breadcums">
-        </v-breadcrumbs>
-        <v-spacer></v-spacer>
-        <clock></clock>
-    </v-system-bar>
+
     <v-main>
         <router-view></router-view>
     </v-main>

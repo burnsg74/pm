@@ -2,6 +2,7 @@
     <v-container>
         <v-row>
             <v-col>
+                <router-link :to="'/'">Dashboard</router-link>
                 <v-sheet height="64">
                     <v-toolbar flat color="white">
                         <v-btn outlined class="mr-4" color="grey darken-2" @click="setToday">
