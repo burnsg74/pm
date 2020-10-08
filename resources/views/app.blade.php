@@ -14,7 +14,6 @@
 </head>
 <body>
 <v-app id="app" v-cloak>
-
     <v-main>
         <router-view></router-view>
     </v-main>

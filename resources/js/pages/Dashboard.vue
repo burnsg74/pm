@@ -1,95 +1,99 @@
 <template>
-    <v-container>
+    <v-container fluid>
         <v-system-bar
             app
             clipped-left
             dark
             dense
         >
+            <v-menu offset-y>
+                <template v-slot:activator="{ on, attrs }">
+                    <v-icon v-bind="attrs"
+                            v-on="on">mdi-account-multiple
+                    </v-icon>
+                </template>
+                <v-list>
+                    <v-list-item
+                        v-for="(item, index) in clients"
+                        :key="index"
+                    >
+                        <v-list-item-title>
+                            <a v-on:click="setCleint(index)">{{ item.code }} :: {{ item.name }}</a>
+                        </v-list-item-title>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
+            <span class="project">
+            {{ project.code }} :: {{ project.name }}
+            </span>
+            <v-btn dark x-small>
+                <v-icon v-on:click="toggleClientDetailVisibility">mdi-account</v-icon>
+            </v-btn>
+            <v-btn dark x-small>
+                <v-icon v-on:click="toggleProjectDetailVisibility">mdi-folder-multiple</v-icon>
+            </v-btn>
+            <v-btn color="green" x-small>
+                <v-icon v-on:click="toggleAdd">mdi-plus</v-icon>
+            </v-btn>
             <v-spacer></v-spacer>
+            <v-icon @click="refresh">refresh</v-icon>
             <clock></clock>
         </v-system-bar>
-        <!-- Top Menu Bar -->
-        <v-row>
-            <v-col class="pt-0">
-                <h2>
-                    <v-menu offset-y>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-icon v-bind="attrs"
-                                    v-on="on">mdi-account-multiple
-                            </v-icon>
-                        </template>
-                        <v-list>
-                            <v-list-item
-                                v-for="(item, index) in clients"
-                                :key="index"
-                            >
-                                <v-list-item-title >
-                                    <a v-on:click="setCleint(index)">{{ item.code }} :: {{ item.name }}</a>
-                                </v-list-item-title>
-                            </v-list-item>
-                        </v-list>
-                    </v-menu>
-                    {{ project.code }} :: {{ project.name }}
-                    <v-icon v-on:click="toggleClientDetail">mdi-account</v-icon>
-                    <v-icon v-on:click="toggleProjectDetail">mdi-folder-multiple</v-icon>
-                    <v-icon v-on:click="toggleAdd">mdi-plus</v-icon>
-                    <v-icon @click="refresh" class="float-right">refresh</v-icon>
-                </h2>
-            </v-col>
-        </v-row>
         <!-- Client Details -->
-        <v-row v-if="showClientDetail" fluid v-on:dblclick="toggleEditor" @keydown.esc="toggleEditor">
+        <v-row v-if="clientDetailVisible" v-on:dblclick="toggleClientDetailEditor" @keydown.esc="toggleClientDetailEditor">
             <v-col md="12">
-                <v-card class="grey lighten-5">
-                    <div v-show="!isEditing" class="html-viewer" style="color: black"
+                <v-card class="grey lighten-5 client-details">
+                    <div v-show="!clientDetailIsEditing" class="html-viewer client-details" style="color: black"
                          v-html="client.html"></div>
-                    <textarea v-show="isEditing" v-model="markdown" class="html-viewer" rows="30"
+                    <textarea v-show="clientDetailIsEditing" v-model="client.markdown" class="html-viewer" rows="30"
                               style="width: 100%"></textarea>
                 </v-card>
             </v-col>
         </v-row>
         <!-- Project Details -->
-        <v-row v-if="showProjectDetail" fluid v-on:dblclick="toggleProjectDetail"
-               @keydown.esc="toggleProjectDetail">
+        <v-row v-if="projectDetailVisible" v-on:dblclick="toggleProjectDetailEditor"
+               @keydown.esc="toggleProjectDetailEditor">
             <v-col md="12">
                 <v-card class="grey lighten-5">
-                    <div v-show="!isEditing" class="html-viewer" style="color: black"
+                    <div v-show="!projectDetailIsEditing" class="html-viewer" style="color: black"
                          v-html="project.html"></div>
-                    <textarea v-show="isEditing" v-model="markdown" class="html-viewer" rows="30"
+                    <textarea v-show="projectDetailIsEditing" v-model="project.markdown" class="html-viewer" rows="30"
                               style="width: 100%"></textarea>
                 </v-card>
             </v-col>
         </v-row>
         <!-- Status Tabs -->
-        <v-row>
-            <v-col
-                :class="['rounded-t-xl', (currentStatus ==='Backlog') ? 'active-tab' : 'inactive-tab']"
-                v-on:click="setSelectedTaskStatus('Backlog')">
+        <v-row class="ml-3 mr-3">
+            <v-col :class="['rounded-t-xl', (currentStatus ==='Backlog') ? 'active-tab' : 'inactive-tab']" cols="12"
+                   sm="3"
+                   v-on:click="setSelectedTaskStatus('Backlog')">
                 Backlog ::
                 <span slot="badge"> {{ client.projects[0].tasks['Backlog'].length }} </span>
             </v-col>
-            <v-col :class="['rounded-t-xl', (currentStatus ==='In-Progress') ? 'active-tab' : 'inactive-tab']"
+            <v-col :class="['rounded-t-xl', (currentStatus ==='In-Progress') ? 'active-tab' : 'inactive-tab']" cols="12"
+                   sm="3"
                    v-on:click="setSelectedTaskStatus('In-Progress')">
                 In-Progress ::
                 <span slot="badge"> {{ client.projects[0].tasks['In-Progress'].length }} </span>
             </v-col>
-            <v-col :class="['rounded-t-xl', (currentStatus ==='Hold') ? 'active-tab' : 'inactive-tab']"
+            <v-col :class="['rounded-t-xl', (currentStatus ==='Hold') ? 'active-tab' : 'inactive-tab']" cols="12"
+                   sm="3"
                    v-on:click="setSelectedTaskStatus('Hold')">
                 Hold ::
                 <span slot="badge"> {{ client.projects[0].tasks['Hold'].length }} </span>
             </v-col>
-            <v-col :class="['rounded-t-xl', (currentStatus ==='Done') ? 'active-tab' : 'inactive-tab']"
+            <v-col :class="['rounded-t-xl', (currentStatus ==='Done') ? 'active-tab' : 'inactive-tab']" cols="12"
+                   sm="3"
                    v-on:click="setSelectedTaskStatus('Done')">
                 Done ::
                 <span slot="badge"> {{ client.projects[0].tasks['Done'].length }} </span>
             </v-col>
         </v-row>
         <!-- Status Tab Details -->
-        <v-row>
+        <v-row class="ml-3 mr-3">
             <!-- Add new Task -->
             <v-col v-show="isAdding" class="active-tab">
-                <v-row >
+                <v-row>
                     <v-col cols="10">
                         <v-row fluid>
                             <v-col md="12">
@@ -150,7 +154,7 @@
             </v-col>
             <!-- Status List -->
             <v-col v-show="!isAdding && !isViewing" class="active-tab">
-                <table class="tablet_mac" >
+                <table class="tablet_mac">
                     <draggable v-model="tasks" group="tasks"
                                @end="drag=false" @start="drag=true">
                         <tr v-for="(task,idx) in tasks" :key="task.id">
@@ -177,8 +181,10 @@ export default {
         isEditingTask: false,
         isAdding: false,
         isViewing: false,
-        showClientDetail: false,
-        showProjectDetail: false,
+        clientDetailVisible: false,
+        clientDetailIsEditing: false,
+        projectDetailVisible: false,
+        projectDetailIsEditing: false,
         showBacklog: true,
         showProgress: false,
         showHold: false,
@@ -190,7 +196,6 @@ export default {
             return this.$store.getters.getClients()
         },
         client: function () {
-            console.log(this.$store.getters.getClient())
             return this.$store.getters.getClient()
         },
         project: function () {
@@ -228,7 +233,7 @@ export default {
         toggleAdd: function () {
             this.editingTask = {
                 code: '',
-                name:'',
+                name: '',
                 markdown: '',
                 status: this.clients.selectedTaskStatus
             }
@@ -239,8 +244,8 @@ export default {
             this.isViewing = !this.isViewing
         },
         toggleEditingTask: function () {
-            if (this.isEditingTask === false){
-                this.editingTask = JSON.parse(JSON.stringify(this.task)) ;
+            if (this.isEditingTask === false) {
+                this.editingTask = JSON.parse(JSON.stringify(this.task));
                 this.isEditingTask = true;
             } else {
                 this.isEditingTask = false;
@@ -267,8 +272,17 @@ export default {
         next: function () {
             this.$store.dispatch('nextTask')
         },
-        toggleClientDetail: function (event) {
-            this.showClientDetail = !this.showClientDetail
+        toggleClientDetailVisibility: function () {
+            this.clientDetailVisible = !this.clientDetailVisible
+        },
+        toggleClientDetailEditor: function () {
+            this.clientDetailIsEditing = !this.clientDetailIsEditing
+        },
+        toggleProjectDetailVisibility: function () {
+            this.projectDetailVisible = !this.projectDetailVisible
+        },
+        toggleProjectDetailEditor: function () {
+            this.projectDetailIsEditing = !this.projectDetailIsEditing
         },
         toggleProjectDetail: function (event) {
             this.showProjectDetail = !this.showProjectDetail
@@ -330,8 +344,17 @@ export default {
 }
 </script>
 <style scoped>
+.project {
+    color: chartreuse;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
 .html-viewer {
     padding: 10px;
+    border-style: solid;
+    border-color: aqua;
+    border-width: 1px;
 }
 
 hr {
