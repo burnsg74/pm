@@ -56,6 +56,11 @@ export default {
                 commit('SET_PROJECT_NOTE', {markdown, html})
             })
         },
+        setClientOrder({commit, state}, payload) {
+            console.log('setClientOrder')
+            commit('SET_CLIENTS', payload)
+            api.updateClientOrder(payload)
+        },
         setTaskOrder({commit, state}, payload) {
             console.log('setTaskOrder')
             commit('SET_TASK_ORDER', payload)
@@ -101,6 +106,7 @@ export default {
             state.selectedTaskStatus = payload
         },
         SET_CLIENTS(state, payload) {
+            console.log(payload)
             state.data = payload
         },
         UPDATE_CLIENTS(state, payload) {

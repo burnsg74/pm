@@ -16,4 +16,7 @@ export default {
     updateTaskOrder(payload) {
         return axios.put('/ajax/taskorder', {tasks:payload});
     },
+    updateClientOrder(payload) {
+        return axios.put('/ajax/clientorder', {clients:payload});
+    },
 }

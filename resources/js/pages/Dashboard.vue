@@ -12,15 +12,17 @@
                             v-on="on">mdi-account-multiple
                     </v-icon>
                 </template>
-                <v-list>
-                    <v-list-item
-                        v-for="(item, index) in clients"
-                        :key="index"
-                    >
-                        <v-list-item-title>
-                            <a v-on:click="setCleint(index)">{{ item.code }} :: {{ item.name }}</a>
-                        </v-list-item-title>
-                    </v-list-item>
+                <v-list dark dense class="client-dropdown">
+                    <draggable v-model="clients" group="clients">
+                        <v-list-item
+                            v-for="(item, index) in clients"
+                            :key="index"
+                        >
+                            <v-list-item-title>
+                                <a v-on:click="setCleint(index)">{{ item.code }} :: {{ item.name }}</a>
+                            </v-list-item-title>
+                        </v-list-item>
+                    </draggable>
                 </v-list>
             </v-menu>
             <span class="project">
@@ -205,8 +207,13 @@ export default {
         statuses: ['Backlog', 'In-Progress', 'Hold', 'Done'],
     }),
     computed: {
-        clients: function () {
-            return this.$store.getters.getClients()
+        clients: {
+            get() {
+                return this.$store.getters.getClients()
+            },
+            set(value) {
+                this.$store.dispatch('setClientOrder', value)
+            }
         },
         client: function () {
             return this.$store.getters.getClient()
@@ -375,6 +382,12 @@ export default {
 
 hr {
     color: aqua;
+}
+
+.client-dropdown {
+    border-style: solid;
+    border-color: aqua;
+    border-width: 1px;
 }
 
 .active-tab {

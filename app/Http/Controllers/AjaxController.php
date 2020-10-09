@@ -73,6 +73,31 @@ class AjaxController extends Controller
         return $newContent;
     }
 
+    private function putClientorder(Request $request)
+    {
+        $clients = $request->get('clients');
+        $order = 1;
+        foreach ($clients as $client) {
+            $dbRecord        = Client::find($client['id']);
+            $dbRecord->order = $order;
+            $dbRecord->save();
+
+            $markdown = file_get_contents($dbRecord->note->full_path);
+            $markdown = $this->removeMetas($markdown);
+
+            $meta    = "<meta name='name' content='{$dbRecord->name}'>" . PHP_EOL;
+            $meta    .= "<meta name='started_at' content='{$dbRecord->started_at}'>" . PHP_EOL;
+            $meta    .= "<meta name='order' content='{$dbRecord->order}'>" . PHP_EOL;
+            $meta    .= "<meta name='status' content='{$dbRecord->status}'>" . PHP_EOL;
+            $content = $meta . PHP_EOL . $markdown;
+            file_put_contents($dbRecord->note->full_path, $content);
+
+            $order++;
+        }
+
+        return true;
+    }
+
     private function putTaskorder(Request $request)
     {
         $tasks = $request->get('tasks');
@@ -102,7 +127,7 @@ class AjaxController extends Controller
     {
         $parsedown = new Parsedown();
         $res       = [];
-        $clients   = Client::where('status','Active')->orderBy('updated_at')->get();
+        $clients   = Client::where('status','Active')->orderBy('order')->orderBy('updated_at')->get();
         foreach ($clients as $client) {
             $item = $client->toArray();
             if (file_exists($client->note->full_path)) {

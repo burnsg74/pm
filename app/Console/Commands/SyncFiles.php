@@ -95,6 +95,16 @@ class SyncFiles extends Command
                             $client->save();
                         }
 
+                        if ((!empty($tags['order'])) && $client->order !== $tags['order']) {
+                            $client->order = $tags['order'];
+                            $client->save();
+                        }
+
+                        if ((!empty($tags['status'])) && $client->status !== $tags['status']) {
+                            $client->status = $tags['status'];
+                            $client->save();
+                        }
+
                     }
 
                 }
