@@ -16,7 +16,6 @@ class CreateWorklogsTable extends Migration
                 $table->foreignId('task_id')->nullable()->default(null)->constrained();
                 $table->foreignId('event_id')->nullable()->default(null)->constrained();
                 $table->string('name')->nullable()->default(null);
-                $table->text('description')->nullable()->default(null);
                 $table->timestamps();
             }
         );

@@ -1,11 +1,19 @@
-export default {
-    state: {
+import api from "../../api";
+
+const getDefaultState = () => {
+    return {
         selectedClientIdx: 0,
         selectedProjectIdx: 0,
         selectedTaskStatus: 'Backlog',
         selectedTaskIdx: 0,
         data: [],
-    },
+    }
+}
+
+const state = getDefaultState()
+
+export default {
+    state,
     getters: {
         getClients: state => () => {
             return state.data
@@ -22,7 +30,7 @@ export default {
         getProject: state => () => {
             return state.data[state.selectedClientIdx].projects[state.selectedProjectIdx]
         },
-        getSelectedTaskStatus:state => () => {
+        getSelectedTaskStatus: state => () => {
             return state.selectedTaskStatus
         },
         getTasks: state => () => {
@@ -33,19 +41,39 @@ export default {
         },
     },
     actions: {
-        setClientById ({commit,state}, id) {
+        updateClientDetail({commit, state}, markdown) {
+            console.log('updateClientDetail')
+            api.updateClientDetail(state.data[state.selectedClientIdx].id, markdown).then(function (response) {
+                let html = response.data.payload
+                commit('SET_CLIENT_NOTE', {markdown, html})
+            })
+        },
+        updateProjectDetail({commit, state}, markdown) {
+            console.log('updateProjectDetail')
+            let project = state.data[state.selectedClientIdx].projects[state.selectedProjectIdx]
+            api.updateProjectDetail(project.id, markdown).then(function (response) {
+                let html = response.data.payload
+                commit('SET_PROJECT_NOTE', {markdown, html})
+            })
+        },
+        setTaskOrder({commit, state}, payload) {
+            console.log('setTaskOrder')
+            commit('SET_TASK_ORDER', payload)
+            api.updateTaskOrder(payload)
+        },
+        setClientById({commit, state}, id) {
             commit('SET_CLIENT_IDX', state.data.findIndex(item => item.id == id))
         },
-        setSelectedTaskStatus ({commit}, status) {
+        setSelectedTaskStatus({commit}, status) {
             commit('SET_SELECTED_TASK_STATUS', status)
         },
-        setSelectedClientIdx ({commit}, idx) {
+        setSelectedClientIdx({commit}, idx) {
             commit('SET_CLIENT_IDX', idx)
         },
-        setSelectedTaskIdx ({commit}, idx) {
+        setSelectedTaskIdx({commit}, idx) {
             commit('SET_SELECTED_TASK_IDX', idx)
         },
-        setTask ({commit,state}, id) {
+        setTask({commit, state}, id) {
             commit('SET_CLIENT_IDX', state.data.findIndex(item => item.id == id))
         },
         updateTask({commit}, payload) {
@@ -78,19 +106,27 @@ export default {
         UPDATE_CLIENTS(state, payload) {
             state.data = payload
         },
-        ADD_TASK(state,payload) {
+        SET_CLIENT_NOTE(state, payload) {
+            state.data[state.selectedClientIdx].markdown = payload.markdown
+            state.data[state.selectedClientIdx].html = payload.html
+        },
+        SET_PROJECT_NOTE(state, payload) {
+            state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].markdown = payload.markdown
+            state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].html = payload.html
+        },
+        ADD_TASK(state, payload) {
             state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[payload.status].push(payload)
             state.selectedTaskStatus = payload.status
             state.selectedTaskIdx = state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[payload.status].length - 1
         },
-        UPDATE_TASK(state,payload) {
+        UPDATE_TASK(state, payload) {
             state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus].splice(state.selectedTaskIdx, 1);
             state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[payload.status].push(payload)
             state.selectedTaskStatus = payload.status
             state.selectedTaskIdx = state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[payload.status].length - 1
         },
         INCREMENT_TASK(state) {
-            if (state.selectedTaskIdx === state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus].length -1) {
+            if (state.selectedTaskIdx === state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus].length - 1) {
                 state.selectedTaskIdx = 0
             } else {
                 state.selectedTaskIdx++
@@ -104,14 +140,13 @@ export default {
             }
         },
         SET_TASK(state, payload) {
-            console.log('SET TASK',payload)
+            console.log('SET TASK', payload)
             /*state.data[state.selectedClientIdx]
                 .projects[state.selectedProjectIdx]
                 .tasks[state.selectedTaskStatus][state.selectedTaskIdx] = payload*/
         },
         SET_TASK_ORDER(state, payload) {
             state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus] = payload
-            // @TODO Save to backend
         },
     },
 };

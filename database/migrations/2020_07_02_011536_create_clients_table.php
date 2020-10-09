@@ -22,7 +22,6 @@ class CreateClientsTable extends Migration
                 $table->integer('order')->default(0);
                 $table->enum('status',['Active','In-Active'])->default('Active');
                 $table->string('name')->nullable()->default(null);
-                $table->text('description')->nullable()->default(null);
                 $table->date('started_at')->nullable()->default(null);
                 $table->timestamps();
             }

@@ -17,7 +17,6 @@ class CreateProjectsTable extends Migration
                 $table->foreignId('note_id')->nullable()->default(null)->constrained();
                 $table->string('code')->unique();
                 $table->string('name')->nullable()->default(null);
-                $table->text('description')->nullable()->default(null);
                 $table->timestamps();
             }
         );

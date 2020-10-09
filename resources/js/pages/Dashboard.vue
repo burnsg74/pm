@@ -26,27 +26,33 @@
             <span class="project">
             {{ project.code }} :: {{ project.name }}
             </span>
-            <v-btn dark x-small>
-                <v-icon v-on:click="toggleClientDetailVisibility">mdi-account</v-icon>
+            <v-btn dark x-small v-on:click="toggleClientDetailVisibility">
+                <v-icon>mdi-account</v-icon>
             </v-btn>
-            <v-btn dark x-small>
-                <v-icon v-on:click="toggleProjectDetailVisibility">mdi-folder-multiple</v-icon>
+            <v-btn dark x-small v-on:click="toggleProjectDetailVisibility">
+                <v-icon>mdi-folder-multiple</v-icon>
             </v-btn>
-            <v-btn color="green" x-small>
-                <v-icon v-on:click="toggleAdd">mdi-plus</v-icon>
+            <v-btn color="green" x-small v-on:click="toggleAdd">
+                <v-icon>mdi-plus</v-icon>
             </v-btn>
             <v-spacer></v-spacer>
             <v-icon @click="refresh">refresh</v-icon>
             <clock></clock>
         </v-system-bar>
         <!-- Client Details -->
-        <v-row v-if="clientDetailVisible" v-on:dblclick="toggleClientDetailEditor" @keydown.esc="toggleClientDetailEditor">
+        <v-row v-if="clientDetailVisible" v-on:dblclick="toggleClientDetailEditor"
+               @keydown.esc="toggleClientDetailEditor">
             <v-col md="12">
                 <v-card class="grey lighten-5 client-details">
                     <div v-show="!clientDetailIsEditing" class="html-viewer client-details" style="color: black"
                          v-html="client.html"></div>
-                    <textarea v-show="clientDetailIsEditing" v-model="client.markdown" class="html-viewer" rows="30"
-                              style="width: 100%"></textarea>
+                    <v-textarea v-show="clientDetailIsEditing"
+                                v-model="clientDetailCache"
+                                auto-grow
+                                class="html-viewer"
+                                dark
+                                rows="1"
+                                style="width: 100%; background: black"></v-textarea>
                 </v-card>
             </v-col>
         </v-row>
@@ -57,8 +63,13 @@
                 <v-card class="grey lighten-5">
                     <div v-show="!projectDetailIsEditing" class="html-viewer" style="color: black"
                          v-html="project.html"></div>
-                    <textarea v-show="projectDetailIsEditing" v-model="project.markdown" class="html-viewer" rows="30"
-                              style="width: 100%"></textarea>
+                    <v-textarea v-show="projectDetailIsEditing"
+                                v-model="projectDetailCache"
+                                auto-grow
+                                class="html-viewer"
+                                dark
+                                rows="1"
+                                style="width: 100%; background: black"></v-textarea>
                 </v-card>
             </v-col>
         </v-row>
@@ -183,8 +194,10 @@ export default {
         isViewing: false,
         clientDetailVisible: false,
         clientDetailIsEditing: false,
+        clientDetailCache: '',
         projectDetailVisible: false,
         projectDetailIsEditing: false,
+        projectDetailCache: '',
         showBacklog: true,
         showProgress: false,
         showHold: false,
@@ -209,7 +222,7 @@ export default {
                 return this.$store.getters.getTasks()
             },
             set(value) {
-                this.$store.commit('SET_TASK_ORDER', value)
+                this.$store.dispatch('setTaskOrder', value)
             }
         },
         task: {
@@ -273,32 +286,35 @@ export default {
             this.$store.dispatch('nextTask')
         },
         toggleClientDetailVisibility: function () {
+            console.log('toggleClientDetailVisibility', this.clientDetailVisible)
             this.clientDetailVisible = !this.clientDetailVisible
         },
         toggleClientDetailEditor: function () {
-            this.clientDetailIsEditing = !this.clientDetailIsEditing
+            console.log('toggleClientDetailEditor', this.clientDetailIsEditing)
+            if (this.clientDetailIsEditing === false) {
+                this.clientDetailCache = JSON.parse(JSON.stringify(this.client.markdown));
+                this.clientDetailIsEditing = true;
+            } else {
+                this.clientDetailIsEditing = false;
+                this.$store.dispatch('updateClientDetail', this.clientDetailCache)
+                this.clientDetailCache = '';
+            }
         },
         toggleProjectDetailVisibility: function () {
             this.projectDetailVisible = !this.projectDetailVisible
         },
-        toggleProjectDetailEditor: function () {
-            this.projectDetailIsEditing = !this.projectDetailIsEditing
-        },
         toggleProjectDetail: function (event) {
             this.showProjectDetail = !this.showProjectDetail
         },
-        toggleEditor: function (event) {
-            this.isEditing = !this.isEditing
-            if (this.isEditing) {
-                this.markdown = this.client.markdown
+        toggleProjectDetailEditor: function () {
+            console.log('toggleProjectDetailEditor', this.projectDetailIsEditing)
+            if (this.projectDetailIsEditing === false) {
+                this.projectDetailCache = JSON.parse(JSON.stringify(this.project.markdown));
+                this.projectDetailIsEditing = true;
             } else {
-                let vue = this
-                axios.put('/ajax/note', {
-                    path: vue.client.path,
-                    markdown: vue.markdown,
-                }).then(function (res) {
-                    vue.$store.commit('SET_CLIENTS', res.data.payload)
-                })
+                this.projectDetailIsEditing = false;
+                this.$store.dispatch('updateProjectDetail', this.projectDetailCache)
+                this.projectDetailCache = '';
             }
         },
         setSelectedTaskStatus: function (status) {

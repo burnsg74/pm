@@ -21,7 +21,6 @@ class CreateTasksTable extends Migration
             $table->integer('order')->default(0);
             $table->string('code')->nullable()->default(null);
             $table->string('name')->nullable()->default(null);
-            $table->text('description')->nullable()->default(null);
             $table->enum('status',['Backlog','In-Progress','Hold','Done'])->default('Backlog');
             $table->dateTime('started_at')->nullable()->default(null);
             $table->dateTime('completed_at')->nullable()->default(null);
