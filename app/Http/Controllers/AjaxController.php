@@ -50,10 +50,11 @@ class AjaxController extends Controller
         $client = Client::find($id);
         $note   = Note::find($client->note_id);
 
-        $meta     = "<meta name='name' content='{$client->started_at}'>" . PHP_EOL;
-        $meta     .= "<meta name='order' content='{$client->order}'>" . PHP_EOL;
-        $meta     .= "<meta name='status' content='{$client->status}'>" . PHP_EOL;
-        $content  = $meta . PHP_EOL . $markdown;
+        $meta    = "<meta name='name' content='{$client->name}'>" . PHP_EOL;
+        $meta    .= "<meta name='started_at' content='{$client->started_at}'>" . PHP_EOL;
+        $meta    .= "<meta name='order' content='{$client->order}'>" . PHP_EOL;
+        $meta    .= "<meta name='status' content='{$client->status}'>" . PHP_EOL;
+        $content = $meta . PHP_EOL . $markdown;
 
         file_put_contents($note->full_path, $content);
 
