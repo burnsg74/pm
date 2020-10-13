@@ -131,13 +131,19 @@ class SyncFiles extends Command
                     }
                 }
 
+                // TASKS
                 if ($folder === 'tasks' && !empty($folders[$index + 1])) {
                     $taskCode = strtoupper($folders[$index + 2]);
 
+                    // TASK Notes Markdown File
                     if (!empty($folders[$index + 3]) && $folders[$index + 3] === 'index.md') {
                         if ($task === null || $task->code !== $taskCode) {
                             $task = Task::firstOrCreate(['code' => $taskCode]);
                         }
+
+                        // Open file
+                        // Read each line, Look for # Workload and # History
+                        // 
 
                         if ($task->client_id !== $client->id) {
                             $task->client_id = $client->id;

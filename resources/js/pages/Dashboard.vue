@@ -132,18 +132,22 @@
 
             <!-- Viewing Task -->
             <v-col v-show="isViewing" class="active-tab">
-                <v-icon class="float-left" @click="prev">mdi-chevron-left-box-outline</v-icon>
-                <v-icon class="float-left" @click="next">mdi-chevron-right-box-outline</v-icon>
-                <v-icon class="float-right" @click="toggleView">mdi-close-box</v-icon>
+                <v-row class="view-app-bar" v-if="!isEditingTask && task !== undefined ">
+                    <v-col>
+                        <v-icon class="float-left" @click="prev">mdi-chevron-left-box-outline</v-icon>
+                        <v-icon class="float-left" @click="next">mdi-chevron-right-box-outline</v-icon>
+                        <span class="ml-3">{{ task.code }} :: {{ task.name }}</span>
+                    </v-col>
+                    <v-col>
+                        <v-icon class="float-right" @click="toggleView">mdi-close-box</v-icon>
+                    </v-col>
+                </v-row>
                 <v-row v-on:dblclick="toggleEditingTask">
                     <!-- View Task -->
                     <v-col v-if="!isEditingTask && task !== undefined " cols="12">
-                        <v-row fluid>
-                            <v-col md="12">
-                                {{ task.code }} :: {{ task.name }}
-                                <div class="html-viewer" style="color: white" v-html="task.html"></div>
-                            </v-col>
-                        </v-row>
+                        <div class="html-viewer" style="color: white" v-html="task.html"></div>
+                        <h3>Workload</h3>
+                        <h3>History</h3>
                     </v-col>
                     <!-- Edit Task -->
                     <v-col cols="12">
@@ -374,10 +378,6 @@ export default {
 }
 
 .html-viewer {
-    padding: 10px;
-    border-style: solid;
-    border-color: aqua;
-    border-width: 1px;
 }
 
 hr {
@@ -394,6 +394,10 @@ hr {
     border-style: solid;
     border-color: aqua;
     border-width: 1px;
+}
+
+.view-app-bar {
+    border-bottom: 1px solid chartreuse;
 }
 
 .inactive-tab {
