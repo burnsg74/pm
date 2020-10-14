@@ -380,9 +380,16 @@ class AjaxController extends Controller
             $folders                = explode('/', $note->folder);
             $statusFolder           = count($folders) - 2;
             $folders[$statusFolder] = $newStatus;
-            $newPath                = implode('/', $folders) . '/index.md';
-            mkdir(implode('/', $folders), 0777, true);
+            $newFolder              = implode('/', $folders);
+            $newPath                = $newFolder . '/index.md';
+
+            if (is_dir($newFolder)) {
+                system("rm -rf " . escapeshellarg($newFolder));
+            }
+
+            mkdir($newFolder, 0777, true);
             rename($note->full_path, $newPath);
+            $note->folder    = $newFolder;
             $note->full_path = $newPath;
             $task->status    = $newStatus;
         }
@@ -391,9 +398,16 @@ class AjaxController extends Controller
             $folders                = explode('/', $note->folder);
             $ticketFolder           = count($folders) - 1;
             $folders[$ticketFolder] = strtolower($task->code);
-            $newPath                = implode('/', $folders) . '/index.md';
-            mkdir(implode('/', $folders), 0777, true);
+            $newFolder              = implode('/', $folders);
+            $newPath                = $newFolder . '/index.md';
+
+            if (is_dir($newFolder)) {
+                system("rm -rf " . escapeshellarg($newFolder));
+            }
+
+            mkdir($newFolder, 0777, true);
             rename($note->full_path, $newPath);
+            $note->folder    = $newFolder;
             $note->full_path = $newPath;
             $task->code      = strtoupper($code);
         }

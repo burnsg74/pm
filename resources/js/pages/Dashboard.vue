@@ -146,8 +146,6 @@
                     <!-- View Task -->
                     <v-col v-if="!isEditingTask && task !== undefined " cols="12">
                         <div class="html-viewer" style="color: white" v-html="task.html"></div>
-                        <h3>Workload</h3>
-                        <h3>History</h3>
                     </v-col>
                     <!-- Edit Task -->
                     <v-col cols="12">

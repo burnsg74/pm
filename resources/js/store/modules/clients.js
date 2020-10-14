@@ -19,7 +19,6 @@ export default {
             return state.data
         },
         getClient: state => () => {
-            console.log(state.selectedClientIdx);
             return state.data[state.selectedClientIdx]
         },
         getClientById: state => (id) => {

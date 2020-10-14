@@ -12,7 +12,6 @@ const getters = {}
 
 const actions = {
     loadEvents({commit, state}, payload) {
-        console.log('Load Events')
         api.getEvents().then(function(response){
             let items = [];
             response.data.payload.forEach(function(item) {
@@ -32,12 +31,9 @@ const actions = {
 
 const mutations = {
     SET_EVENTS(state, payload) {
-        console.log(payload)
         state.data = payload
     },
 }
-
-
 
 export default {
     state,
