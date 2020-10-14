@@ -63,11 +63,8 @@ export default {
             function checkAndRemove(item, index) {
                 if (item.id === payload.id) {
                     state.leads[oldStatus].splice(index, 1)
-                    console.log(typeof state.leads[newStatus] )
                     if (typeof state.leads[newStatus] === 'undefined') {
-                        console.log('Create new')
                         state.leads[newStatus] = []
-                        console.log(typeof state.leads[newStatus] )
                     }
                     state.leads[newStatus].push(item)
                 }

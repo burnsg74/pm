@@ -297,11 +297,9 @@ export default {
             this.$store.dispatch('nextTask')
         },
         toggleClientDetailVisibility: function () {
-            console.log('toggleClientDetailVisibility', this.clientDetailVisible)
             this.clientDetailVisible = !this.clientDetailVisible
         },
         toggleClientDetailEditor: function () {
-            console.log('toggleClientDetailEditor', this.clientDetailIsEditing)
             if (this.clientDetailIsEditing === false) {
                 this.clientDetailCache = JSON.parse(JSON.stringify(this.client.markdown));
                 this.clientDetailIsEditing = true;
@@ -318,7 +316,6 @@ export default {
             this.showProjectDetail = !this.showProjectDetail
         },
         toggleProjectDetailEditor: function () {
-            console.log('toggleProjectDetailEditor', this.projectDetailIsEditing)
             if (this.projectDetailIsEditing === false) {
                 this.projectDetailCache = JSON.parse(JSON.stringify(this.project.markdown));
                 this.projectDetailIsEditing = true;
@@ -359,7 +356,6 @@ export default {
             console.log(value);
         },
         refresh: function (event) {
-            console.log('Refresh')
             let vue = this
             axios.get('/ajax/clients').then(res => {
                 vue.$store.commit('SET_CLIENTS', res.data.payload)

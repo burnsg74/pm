@@ -106,7 +106,6 @@ export default {
             state.selectedTaskStatus = payload
         },
         SET_CLIENTS(state, payload) {
-            console.log(payload)
             state.data = payload
         },
         UPDATE_CLIENTS(state, payload) {

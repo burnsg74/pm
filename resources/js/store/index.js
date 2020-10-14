@@ -4,6 +4,7 @@ import breadcum from './modules/breadcum'
 import clients from './modules/clients'
 import notes from './modules/notes'
 import VuexPersist from 'vuex-persist'
+import events from "./modules/events";
 export const strict = false
 
 const vuexPersist = new VuexPersist({
@@ -19,6 +20,7 @@ export default new Vuex.Store({
         breadcum,
         clients,
         notes,
+        events,
     },
     plugins: [vuexPersist.plugin]
 });

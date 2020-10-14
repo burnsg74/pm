@@ -141,9 +141,7 @@ class SyncFiles extends Command
                             $task = Task::firstOrCreate(['code' => $taskCode]);
                         }
 
-                        // Open file
-                        // Read each line, Look for # Workload and # History
-                        // 
+
 
                         if ($task->client_id !== $client->id) {
                             $task->client_id = $client->id;
@@ -185,6 +183,11 @@ class SyncFiles extends Command
                             $task->order = $tags['order'];
                             $task->save();
                         }
+
+                        // Open file
+                        // Read each line, Look for # Workload and # History
+                        // https://vuetifyjs.com/en/components/calendars/
+
                     }
                 }
             }

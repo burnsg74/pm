@@ -23,10 +23,8 @@ export default {
     },
     methods: {
         refresh: function (event) {
-            console.log('Refresh')
             let vue = this
             axios.get('/ajax/clients').then(res => {
-                console.log(res.data.payload);
                 vue.$store.commit('SET_CLIENTS', res.data.payload)
             }).catch(error => {
                 console.log(error.response)

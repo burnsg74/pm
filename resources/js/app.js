@@ -48,5 +48,6 @@ const app = new Vue({
     },
     created () {
         this.$vuetify.theme.dark = true
+        this.$store.dispatch('loadEvents')
     },
 });

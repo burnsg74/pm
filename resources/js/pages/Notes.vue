@@ -74,14 +74,12 @@ export default {
     },
     methods: {
         save: function () {
-            console.log('Save')
             this.dialog = false
             let vue = this
             axios.post('/ajax/note', {
                 name: this.name,
                 note: this.note,
             }).then(res => {
-                console.log(res.data.payload);
                 vue.$store.commit('SET_NOTES', res.data.payload)
             }).catch(error => {
                 console.log(error.response)
@@ -91,7 +89,6 @@ export default {
             console.log('Refresh')
             let vue = this
             axios.get('/ajax/notes').then(res => {
-                console.log(res.data.payload);
                 vue.$store.commit('SET_NOTES', res.data.payload)
             }).catch(error => {
                 console.log(error.response)

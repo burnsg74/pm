@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use App\Models\Event;
 use App\Models\Note;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\WorkLog;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -41,6 +43,124 @@ class AjaxController extends Controller
         return $this->getClients($request);
     }
 
+    private function getClients(Request $request)
+    {
+        $parsedown = new Parsedown();
+        $res       = [];
+        $clients   = Client::where('status', 'Active')->orderBy('order')->orderBy('updated_at')->get();
+        foreach ($clients as $client) {
+            $item = $client->toArray();
+            if (file_exists($client->note->full_path)) {
+                $content          = file_get_contents($client->note->full_path);
+                $item['path']     = $client->note->full_path;
+                $item['markdown'] = $this->removeMetas($content);
+                $item['html']     = $parsedown->text($content);
+            }
+
+            $item['projects'] = [];
+            foreach ($client->projects as $project) {
+                $p = $project->toArray();
+                if (file_exists($project->note->full_path)) {
+                    $content       = file_get_contents($project->note->full_path);
+                    $p['path']     = $project->note->full_path;
+                    $p['markdown'] = $this->removeMetas($content);
+                    $p['html']     = $parsedown->text($content);
+                }
+                $p['tasks'] = [
+                    'Backlog'     => [],
+                    'In-Progress' => [],
+                    'Hold'        => [],
+                    'Done'        => []
+                ];
+                foreach ($project->tasks as $task) {
+                    $t = $task->toArray();
+                    if (file_exists($task->note->full_path)) {
+                        $content   = file_get_contents($task->note->full_path);
+                        $t['path'] = $task->note->full_path;
+
+                        $content = $this->removeMetas($content);
+                        $content = $this->removeWorklogs($task, $content);
+                        $content = $this->removeHistory($content);
+
+                        $t['markdown'] = $content;
+                        $t['html']     = $parsedown->text($content);
+                        $t['worklogs'] = WorkLog::where('task_id', $task->id)->get();
+                    }
+                    $p['tasks'][$task->status][] = $t;
+                }
+                $item['projects'][] = $p;
+            }
+
+            $res[] = $item;
+        }
+
+        return $res;
+    }
+
+    private function removeMetas($content)
+    {
+        $newContent = '';
+        foreach (preg_split("/(^[\r\n]*|[\r\n]*|[\n]+)[\s\t]*[\r\n]+/", $content) as $line) {
+            if (substr($line, 0, 6) === '<meta ') {
+                continue;
+            }
+            $newContent .= $line . PHP_EOL;
+        }
+        return $newContent;
+    }
+
+    private function removeWorklogs($task, string $content)
+    {
+        $newContent        = '';
+        $isWorklogsSection = false;
+        foreach (preg_split("/(^[\r\n]*|[\r\n]*|[\n]+)[\s\t]*[\r\n]+/", $content) as $line) {
+            if (strlen($line) > 6 && strpos($line, '# Worklog')) {
+                $isWorklogsSection = true;
+                $recs              = WorkLog::where('task_id', $task->id)->get();
+                foreach ($recs as $rec) {
+                    $event = Event::find($rec->event_id);
+                    $rec->delete();
+                    if ($event) {
+                        $event->delete();
+                    }
+                }
+                continue;
+            }
+            if ($isWorklogsSection === false) {
+                $newContent .= $line . PHP_EOL;
+                continue;
+            }
+            if (strlen($line) > 2 && strpos($line, '# ')) {
+                $isWorklogsSection = false;
+            }
+
+            // Start DTG, End DTG, Name
+            $data = explode(',', $line);
+            if (empty($data[0]) || empty($data[1]) || empty($data[2])) {
+                continue;
+            }
+
+            $event           = new Event();
+            $event->name     = $data[2] ?? 'Worklog';
+            $event->color    = 'black';
+            $event->timed    = 1;
+            $event->start_at = $data[0];
+            $event->end_at   = $data[1];
+            $event->save();
+
+            $worklog           = new WorkLog();
+            $worklog->task_id  = $task->id;
+            $worklog->event_id = $event->id;
+            $worklog->save();
+        }
+        return $newContent;
+    }
+
+    private function removeHistory(string $content)
+    {
+        return $content;
+    }
+
     private function putClientnote(Request $request)
     {
         $parsedown = new Parsedown();
@@ -61,22 +181,10 @@ class AjaxController extends Controller
         return $parsedown->text($markdown);
     }
 
-    private function removeMetas($content)
-    {
-        $newContent = '';
-        foreach (preg_split("/(^[\r\n]*|[\r\n]*|[\n]+)[\s\t]*[\r\n]+/", $content) as $line) {
-            if (substr($line, 0, 6) === '<meta ') {
-                continue;
-            }
-            $newContent .= $line . PHP_EOL;
-        }
-        return $newContent;
-    }
-
     private function putClientorder(Request $request)
     {
         $clients = $request->get('clients');
-        $order = 1;
+        $order   = 1;
         foreach ($clients as $client) {
             $dbRecord        = Client::find($client['id']);
             $dbRecord->order = $order;
@@ -123,54 +231,6 @@ class AjaxController extends Controller
         return true;
     }
 
-    private function getClients(Request $request)
-    {
-        $parsedown = new Parsedown();
-        $res       = [];
-        $clients   = Client::where('status','Active')->orderBy('order')->orderBy('updated_at')->get();
-        foreach ($clients as $client) {
-            $item = $client->toArray();
-            if (file_exists($client->note->full_path)) {
-                $content         = file_get_contents($client->note->full_path);
-                $item['path']     = $client->note->full_path;
-                $item['markdown'] = $this->removeMetas($content);
-                $item['html']     = $parsedown->text($content);
-            }
-
-            $item['projects'] = [];
-            foreach ($client->projects as $project) {
-                $p = $project->toArray();
-                if (file_exists($project->note->full_path)) {
-                    $content      = file_get_contents($project->note->full_path);
-                    $p['path']     = $project->note->full_path;
-                    $p['markdown'] = $this->removeMetas($content);
-                    $p['html']     = $parsedown->text($content);
-                }
-                $p['tasks'] = [
-                    'Backlog'     => [],
-                    'In-Progress' => [],
-                    'Hold'        => [],
-                    'Done'        => []
-                ];
-                foreach ($project->tasks as $task) {
-                    $t = $task->toArray();
-                    if (file_exists($task->note->full_path)) {
-                        $content      = file_get_contents($task->note->full_path);
-                        $t['path']     = $task->note->full_path;
-                        $t['markdown'] = $this->removeMetas($content);
-                        $t['html']     = $parsedown->text($content);
-                    }
-                    $p['tasks'][$task->status][] = $t;
-                }
-                $item['projects'][] = $p;
-            }
-
-            $res[] = $item;
-        }
-
-        return $res;
-    }
-
     private function postProject(Request $request)
     {
         $project       = new Project();
@@ -179,25 +239,6 @@ class AjaxController extends Controller
         $project->save();
 
         return $this->getProjects($request);
-    }
-
-    private function putProjectnote(Request $request)
-    {
-        $parsedown = new Parsedown();
-        $id        = $request->get('id');
-        $markdown  = $request->get('markdown');
-
-        $project = Project::find($id);
-        $note   = Note::find($project->note_id);
-
-        /*$meta     = "<meta name='name' content='{$client->started_at}'>" . PHP_EOL;
-        $meta     .= "<meta name='order' content='{$client->order}'>" . PHP_EOL;
-        $meta     .= "<meta name='status' content='{$client->status}'>" . PHP_EOL;
-        $content  = $meta . PHP_EOL . $markdown;*/
-
-        file_put_contents($note->full_path, $markdown);
-
-        return $parsedown->text($markdown);
     }
 
     private function getProjects(Request $request)
@@ -211,6 +252,25 @@ class AjaxController extends Controller
             $project->html     = $parsedown->text($contents);
         }
         return $projects;
+    }
+
+    private function putProjectnote(Request $request)
+    {
+        $parsedown = new Parsedown();
+        $id        = $request->get('id');
+        $markdown  = $request->get('markdown');
+
+        $project = Project::find($id);
+        $note    = Note::find($project->note_id);
+
+        /*$meta     = "<meta name='name' content='{$client->started_at}'>" . PHP_EOL;
+        $meta     .= "<meta name='order' content='{$client->order}'>" . PHP_EOL;
+        $meta     .= "<meta name='status' content='{$client->status}'>" . PHP_EOL;
+        $content  = $meta . PHP_EOL . $markdown;*/
+
+        file_put_contents($note->full_path, $markdown);
+
+        return $parsedown->text($markdown);
     }
 
     private function postTask(Request $request)
@@ -284,13 +344,20 @@ class AjaxController extends Controller
 
     private function getTasks(Request $request)
     {
+        dd('STOP, I did not think this was true');
         $tasks = Task::all();
         foreach ($tasks as $task) {
             if (!file_exists($task->note->full_path)) continue;
-            $contents       = file_get_contents($task->note->full_path);
+            $contents = file_get_contents($task->note->full_path);
+
+
+            // Get Worklog
+            // Get History
+
+
             $parsedown      = new Parsedown();
             $task->path     = $task->note->full_path;
-            $task->markdown = $contents;
+            $task->markdown = $this->removeMetas($contents);
             $task->html     = $parsedown->text($contents);
         }
         return $tasks;
@@ -380,6 +447,11 @@ class AjaxController extends Controller
             $note->html = $parsedown->text($contents);
         }
         return $notes;*/
+    }
+
+    private function getEvents(Request $request)
+    {
+        return Event::all();
     }
 
     private function putNote(Request $request)
