@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Parsedown;
 
 class SyncFiles extends Command
 {
@@ -38,6 +39,7 @@ class SyncFiles extends Command
         foreach ($results as $result) {
             $this->line($result);
 
+            $parsedown = new Parsedown();
             $pathInfo            = pathinfo($result);
             $fileFolder          = substr($pathInfo['dirname'], strlen($baseFolder) + 1);
             $filePath            = substr($result, strlen($baseFolder) + 1);
@@ -46,6 +48,7 @@ class SyncFiles extends Command
             $scannedNotes[$hash] = ['scanned' => true];
 
             if (!empty($pathInfo['extension']) && $pathInfo['extension'] == 'md') {
+                $content       = file_get_contents($result);
                 $tags = get_meta_tags($result);
             }
 
@@ -60,6 +63,7 @@ class SyncFiles extends Command
             }
 
             $note->name             = $pathInfo['filename'];
+            $note->note = $parsedown->text($content);
             $note->filename         = $pathInfo['basename'];
             $note->folder           = $pathInfo['dirname'];
             $note->ext              = $pathInfo['extension'] ?? '';
@@ -80,10 +84,8 @@ class SyncFiles extends Command
                     }
 
                     if (!empty($folders[$index + 2]) && $folders[$index + 2] === 'index.md') {
-                        if ($client->note_id !== $note->id) {
-                            $client->note_id = $note->id;
-                            $client->save();
-                        }
+
+                        $client->notes = $parsedown->text($content);
 
                         if ((!empty($tags['name'])) && $client->name !== $tags['name']) {
                             $client->name = $tags['name'];
@@ -120,6 +122,8 @@ class SyncFiles extends Command
                     }
 
                     if ($folders[$index + 2] === 'index.md') {
+                        $project->notes = $parsedown->text($content);
+
                         if ($project->note_id !== $note->id) {
                             $project->note_id = $note->id;
                             $project->save();
@@ -137,10 +141,12 @@ class SyncFiles extends Command
 
                     // TASK Notes Markdown File
                     if (!empty($folders[$index + 3]) && $folders[$index + 3] === 'index.md') {
+
                         if ($task === null || $task->code !== $taskCode) {
                             $task = Task::firstOrCreate(['code' => $taskCode]);
                         }
 
+                        $task->notes = $parsedown->text($content);
 
 
                         if ($task->client_id !== $client->id) {

@@ -7,3 +7,19 @@
 
 [v-cloak] > * { display:none; }
 [v-cloak]::before { content: "loading..."; }
+
+
+.ProseMirror {
+    outline: none;
+    padding: 10px;
+}
+.ProseMirror-focused {
+    outline: none;
+}
+:focus {
+    outline: none;
+}
+.ProseMirror:focus {
+    outline: none;
+    padding: 10px;
+}

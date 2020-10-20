@@ -14,16 +14,7 @@
     </style>
 </head>
 <body>
-<v-app id="app" v-cloak>
-    <v-main>
-        <router-view></router-view>
-    </v-main>
-    <v-footer
-        app
-        class="white--text"
-    >
-    </v-footer>
-</v-app>
+<div id="app"></div>
 <script src="/js/app.js"></script>
 <script src="/js/prism.js"></script>
 </body>

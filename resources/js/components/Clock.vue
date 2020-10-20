@@ -36,5 +36,6 @@
 .clock {
     color: rgb(17, 236, 229);
     text-decoration: none;
+    font-size: 18px;
 }
 </style>

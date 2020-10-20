@@ -13,6 +13,7 @@ class CreateEventsTable extends Migration
             function (Blueprint $table) {
                 $table->id();
                 $table->string('name')->nullable()->default(null);
+                $table->text('notes')->nullable()->default(null);
                 $table->string('color')->nullable()->default(null);
                 $table->string('timed')->nullable()->default(null);
                 $table->dateTime('start_at')->nullable()->default(null);

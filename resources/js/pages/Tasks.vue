@@ -1,80 +1,5 @@
 <template>
     <v-container fluid>
-        <v-system-bar
-            app
-            clipped-left
-            dark
-            dense
-        >
-            <v-menu offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                    <v-icon v-bind="attrs"
-                            v-on="on">mdi-account-multiple
-                    </v-icon>
-                </template>
-                <v-list dark dense class="client-dropdown">
-                    <draggable v-model="clients" group="clients">
-                        <v-list-item
-                            v-for="(item, index) in clients"
-                            :key="index"
-                        >
-                            <v-list-item-title>
-                                <a v-on:click="setCleint(index)">{{ item.code }} :: {{ item.name }}</a>
-                            </v-list-item-title>
-                        </v-list-item>
-                    </draggable>
-                </v-list>
-            </v-menu>
-            <span class="project">
-            {{ project.code }} :: {{ project.name }}
-            </span>
-            <v-btn dark x-small v-on:click="toggleClientDetailVisibility">
-                <v-icon>mdi-account</v-icon>
-            </v-btn>
-            <v-btn dark x-small v-on:click="toggleProjectDetailVisibility">
-                <v-icon>mdi-folder-multiple</v-icon>
-            </v-btn>
-            <v-btn color="green" x-small v-on:click="toggleAdd">
-                <v-icon>mdi-plus</v-icon>
-            </v-btn>
-            <v-spacer></v-spacer>
-            <v-icon @click="refresh">refresh</v-icon>
-            <clock></clock>
-        </v-system-bar>
-        <!-- Client Details -->
-        <v-row v-if="clientDetailVisible" v-on:dblclick="toggleClientDetailEditor"
-               @keydown.esc="toggleClientDetailEditor">
-            <v-col md="12">
-                <v-card class="grey lighten-5 client-details">
-                    <div v-show="!clientDetailIsEditing" class="html-viewer client-details" style="color: black"
-                         v-html="client.html"></div>
-                    <v-textarea v-show="clientDetailIsEditing"
-                                v-model="clientDetailCache"
-                                auto-grow
-                                class="html-viewer"
-                                dark
-                                rows="1"
-                                style="width: 100%; background: black"></v-textarea>
-                </v-card>
-            </v-col>
-        </v-row>
-        <!-- Project Details -->
-        <v-row v-if="projectDetailVisible" v-on:dblclick="toggleProjectDetailEditor"
-               @keydown.esc="toggleProjectDetailEditor">
-            <v-col md="12">
-                <v-card class="grey lighten-5">
-                    <div v-show="!projectDetailIsEditing" class="html-viewer" style="color: black"
-                         v-html="project.html"></div>
-                    <v-textarea v-show="projectDetailIsEditing"
-                                v-model="projectDetailCache"
-                                auto-grow
-                                class="html-viewer"
-                                dark
-                                rows="1"
-                                style="width: 100%; background: black"></v-textarea>
-                </v-card>
-            </v-col>
-        </v-row>
         <!-- Status Tabs -->
         <v-row class="ml-3 mr-3">
             <v-col :class="['rounded-t-xl', (currentStatus ==='Backlog') ? 'active-tab' : 'inactive-tab']" cols="12"
@@ -136,6 +61,7 @@
                     <v-col>
                         <v-icon class="float-left" @click="prev">mdi-chevron-left-box-outline</v-icon>
                         <v-icon class="float-left" @click="next">mdi-chevron-right-box-outline</v-icon>
+
                         <span class="ml-3">{{ task.code }} :: {{ task.name }}</span>
                     </v-col>
                     <v-col>
@@ -143,9 +69,25 @@
                     </v-col>
                 </v-row>
                 <v-row v-on:dblclick="toggleEditingTask">
+                    <router-link
+                        style="text-decoration: none "
+                        :to="{ name: 'task-edit', params: task.id}"
+                    >
+                        <v-btn
+                            elevation="2">
+                            Edit Task
+                        </v-btn>
+                    </router-link>
                     <!-- View Task -->
                     <v-col v-if="!isEditingTask && task !== undefined " cols="12">
-                        <div class="html-viewer" style="color: white" v-html="task.html"></div>
+                        <div class="html-viewer" style="color: white" v-html="task.notes"></div>
+                        <v-btn
+                            depressed
+                            color="danger"
+                            @click="deleteTask"
+                        >
+                            Delete
+                        </v-btn>
                     </v-col>
                     <!-- Edit Task -->
                     <v-col cols="12">
@@ -185,13 +127,18 @@
 </template>
 <script>
 import draggable from 'vuedraggable'
+import { Editor, EditorContent, EditorMenuBar } from 'tiptap'
+import { Bold, Italic, Link, HardBreak, Heading,Blockquote } from 'tiptap-extensions'
 
 export default {
     name: 'Dashboard',
     components: {
         draggable,
+        EditorMenuBar,
+        EditorContent,
     },
-    data: () => ({
+    data() {
+    return {
         isEditing: false,
         isEditingTask: false,
         isAdding: false,
@@ -207,7 +154,25 @@ export default {
         showHold: false,
         editingTask: {},
         statuses: ['Backlog', 'In-Progress', 'Hold', 'Done'],
-    }),
+        editor: new Editor({
+            content: '',
+            extensions: [
+                // The editor will accept paragraphs and headline elements as part of its document schema.
+                new Heading(),
+                new Bold(),
+                new Italic(),
+                new Link(),
+                new HardBreak(),
+                new Blockquote(),
+            ],
+            onUpdate: ({getHTML, getJSON}) => {
+                console.log('onUpdate')
+                //this.html = getHTML()
+                //this.json = getJSON()
+            },
+        }),
+    }
+    },
     computed: {
         clients: {
             get() {
@@ -249,6 +214,9 @@ export default {
         }
     },
     methods: {
+        deleteTask: function (idx) {
+            this.$store.dispatch('deleteTask', idx)
+        },
         setCleint: function (idx) {
             this.$store.dispatch('setSelectedClientIdx', idx)
         },
@@ -295,6 +263,7 @@ export default {
             this.$store.dispatch('nextTask')
         },
         toggleClientDetailVisibility: function () {
+            this.editor.setContent(this.client.notes)
             this.clientDetailVisible = !this.clientDetailVisible
         },
         toggleClientDetailEditor: function () {
@@ -353,23 +322,15 @@ export default {
         setStatus: function (value) {
             console.log(value);
         },
-        refresh: function (event) {
-            let vue = this
-            axios.get('/ajax/clients').then(res => {
-                vue.$store.commit('SET_CLIENTS', res.data.payload)
-            }).catch(error => {
-                console.log(error.response)
-            })
-        }
-    }
+
+    },
+    beforeDestroy() {
+        this.editor.destroy()
+    },
 }
 </script>
 <style scoped>
-.project {
-    color: chartreuse;
-    font-size: 16px;
-    margin-right: 10px;
-}
+
 
 .html-viewer {
 }
@@ -403,4 +364,7 @@ hr {
 .html-viewer {
     padding: 10px;
 }
+
+
+
 </style>

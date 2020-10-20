@@ -1,10 +1,14 @@
 import VueRouter from "vue-router";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import Clients from "./pages/Clients";
-import Client from "./pages/Dashboard";
+import Client from "./pages/Client";
 import Notes from "./pages/Notes";
 import Note from "./pages/Note";
+import Project from "./pages/Project";
+import Tasks from "./pages/Tasks";
+import Tasknew from "./pages/Tasknew";
+import Taskedit from "./pages/Taskedit";
 
 export default new VueRouter({
     mode: 'history',
@@ -12,7 +16,7 @@ export default new VueRouter({
         {
             name: 'home',
             path: '/',
-            component: Dashboard
+            component: Tasks
         },
         {
             name: 'clients',
@@ -21,8 +25,28 @@ export default new VueRouter({
         },
         {
             name: 'client',
-            path: '/client/:id',
+            path: '/client',
             component: Client
+        },
+        {
+            name: 'project',
+            path: '/project',
+            component: Project
+        },
+        {
+            name: 'tasks',
+            path: '/tasks',
+            component: Tasks
+        },
+        {
+            name: 'task-new',
+            path: '/task/new',
+            component: Tasknew
+        },
+        {
+            name: 'task-edit',
+            path: '/task/edit',
+            component: Taskedit
         },
         {
             name: 'notes',

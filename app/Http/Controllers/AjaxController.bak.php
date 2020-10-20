@@ -11,16 +11,17 @@ use App\Models\WorkLog;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Log;
 use Parsedown;
 
 class AjaxController extends Controller
 {
-    public function __invoke(Request $request, $item,$id=null)
+    public function __invoke(Request $request, $item)
     {
         try {
             $function = strtolower($request->method()) . ucwords($item);
-            $payload  = $this->$function($request,$id);
+            dd($function);
+            $payload  = $this->$function($request);
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -44,27 +45,29 @@ class AjaxController extends Controller
         return $this->getClients($request);
     }
 
-    private function putClient(Request $request)
-    {
-        $id   = $request->get('id');
-        $notes = $request->get('notes');
-
-        $client       = Client::find($id);
-        $client->notes = $notes;
-        $client->save();
-
-        return $client;
-    }
-
     private function getClients(Request $request)
     {
+        $parsedown = new Parsedown();
         $res       = [];
         $clients   = Client::where('status', 'Active')->orderBy('order')->orderBy('updated_at')->get();
         foreach ($clients as $client) {
             $item = $client->toArray();
+            if (file_exists($client->note->full_path)) {
+                $content          = file_get_contents($client->note->full_path);
+                $item['path']     = $client->note->full_path;
+                $item['markdown'] = $this->removeMetas($content);
+                $item['html']     = $parsedown->text($content);
+            }
+
             $item['projects'] = [];
             foreach ($client->projects as $project) {
                 $p = $project->toArray();
+                if (file_exists($project->note->full_path)) {
+                    $content       = file_get_contents($project->note->full_path);
+                    $p['path']     = $project->note->full_path;
+                    $p['markdown'] = $this->removeMetas($content);
+                    $p['html']     = $parsedown->text($content);
+                }
                 $p['tasks'] = [
                     'Backlog'     => [],
                     'In-Progress' => [],
@@ -73,6 +76,18 @@ class AjaxController extends Controller
                 ];
                 foreach ($project->tasks as $task) {
                     $t = $task->toArray();
+                    if (file_exists($task->note->full_path)) {
+                        $content   = file_get_contents($task->note->full_path);
+                        $t['path'] = $task->note->full_path;
+
+                        $content = $this->removeMetas($content);
+                        $content = $this->removeWorklogs($task, $content);
+                        $content = $this->removeHistory($content);
+
+                        $t['markdown'] = $content;
+                        $t['html']     = $parsedown->text($content);
+                        $t['worklogs'] = WorkLog::where('task_id', $task->id)->get();
+                    }
                     $p['tasks'][$task->status][] = $t;
                 }
                 $item['projects'][] = $p;
@@ -148,24 +163,17 @@ class AjaxController extends Controller
         return $content;
     }
 
-    private function putClientnote(Request $request)
+    private function putClient(Request $request)
     {
-        $parsedown = new Parsedown();
-        $id        = $request->get('id');
-        $markdown  = $request->get('markdown');
+        $id   = $request->get('id');
+        $note = $request->get('note');
 
-        $client = Client::find($id);
-        $note   = Note::find($client->note_id);
+        $client       = Client::find($id);
+        $client->note = $note;
 
-        $meta    = "<meta name='name' content='{$client->name}'>" . PHP_EOL;
-        $meta    .= "<meta name='started_at' content='{$client->started_at}'>" . PHP_EOL;
-        $meta    .= "<meta name='order' content='{$client->order}'>" . PHP_EOL;
-        $meta    .= "<meta name='status' content='{$client->status}'>" . PHP_EOL;
-        $content = $meta . PHP_EOL . $markdown;
+        Log::debug($client->note);
 
-        file_put_contents($note->full_path, $content);
-
-        return $parsedown->text($markdown);
+        return $client;
     }
 
     private function putClientorder(Request $request)
@@ -273,7 +281,6 @@ class AjaxController extends Controller
         $client       = Client::find($request->input('client_id'));
         $project      = Project::find($request->input('project_id'));
 
-
         $task               = new Task();
         $task->client_id    = $client->id;
         $task->project_id   = $project->id;
@@ -282,16 +289,12 @@ class AjaxController extends Controller
         $task->status       = $status;
         $task->notes        = $notes;
         $task->order        = $order;
-        $task->started_at   = $started_at;
-        $task->completed_at = $completed_at;
+        //$task->started_at   = $started_at;
+        //$task->completed_at = $completed_at;
         $task->duration     = $duration;
         $task->save();
 
         return $task;
-    }
-
-    private function deleteTask(Request $request, $id) {
-        Task::find($id)->delete();
     }
 
     private function getTasks(Request $request)
@@ -317,32 +320,79 @@ class AjaxController extends Controller
 
     private function putTask(Request $request)
     {
-        $code         = $request->input('code');
-        $name         = $request->input('name');
-        $notes        = $request->input('notes');
-        $started_at   = $request->input('started_at') ?? null;
-        $completed_at = $request->input('completed_at') ?? null;
-        $duration     = $request->input('duration') ?? 15;
-        $order        = $request->input('order') ?? 0;
-        $status       = $request->input('status');
+        $parsedown = new Parsedown();
 
-        $task       = Task::find($request->input('id'));
-        $client       = Client::find($request->input('client_id'));
-        $project      = Project::find($request->input('project_id'));
+        $id        = $request->input('id');
+        $code      = $request->input('code');
+        $name      = $request->input('name');
+        $markdown  = $request->input('markdown');
+        $newStatus = $request->input('status');
 
-        $task->client_id    = $client->id;
-        $task->project_id   = $project->id;
-        $task->code         = strtoupper($code);
-        $task->name         = $name;
-        $task->status       = $status;
-        $task->notes        = $notes;
-        $task->order        = $order;
-        $task->started_at   = $started_at;
-        $task->completed_at = $completed_at;
-        $task->duration     = $duration;
+        $task = Task::find($id);
+        $note = $task->note;
+
+        if ($task->status !== $newStatus) {
+            $folders                = explode('/', $note->folder);
+            $statusFolder           = count($folders) - 2;
+            $folders[$statusFolder] = $newStatus;
+            $newFolder              = implode('/', $folders);
+            $newPath                = $newFolder . '/index.md';
+
+            if (is_dir($newFolder)) {
+                system("rm -rf " . escapeshellarg($newFolder));
+            }
+
+            mkdir($newFolder, 0777, true);
+            rename($note->full_path, $newPath);
+            $note->folder    = $newFolder;
+            $note->full_path = $newPath;
+            $task->status    = $newStatus;
+        }
+
+        if (strtolower($task->code) !== strtolower($code)) {
+            $folders                = explode('/', $note->folder);
+            $ticketFolder           = count($folders) - 1;
+            $folders[$ticketFolder] = strtolower($task->code);
+            $newFolder              = implode('/', $folders);
+            $newPath                = $newFolder . '/index.md';
+
+            if (is_dir($newFolder)) {
+                system("rm -rf " . escapeshellarg($newFolder));
+            }
+
+            mkdir($newFolder, 0777, true);
+            rename($note->full_path, $newPath);
+            $note->folder    = $newFolder;
+            $note->full_path = $newPath;
+            $task->code      = strtoupper($code);
+        }
+
+        $note->save();
+
+        $task->name = $name;
         $task->save();
 
-        return $task;
+        $started_at   = $request->input('started_at') ?? '';
+        $completed_at = $request->input('completed_at') ?? '';
+        $duration     = $request->input('duration') ?? 15;
+        $order        = $request->input('order') ?? 0;
+        $meta         = "<meta name='name' content='{$name}'>" . PHP_EOL;
+        $meta         .= "<meta name='started_at' content='{$started_at}'>" . PHP_EOL;
+        $meta         .= "<meta name='completed_at' content='{$completed_at}'>" . PHP_EOL;
+        $meta         .= "<meta name='duration' content='{$duration}'>" . PHP_EOL;
+        $meta         .= "<meta name='order' content='{$order}'>" . PHP_EOL;
+        $content      = $meta . PHP_EOL . $markdown;
+        file_put_contents($note->full_path, $content);
+
+        $t = $task->toArray();
+        if (file_exists($task->note->full_path)) {
+            $contents      = file_get_contents($task->note->full_path);
+            $t['path']     = $task->note->full_path;
+            $t['markdown'] = strip_tags($contents);
+            $t['html']     = $parsedown->text($contents);
+        }
+
+        return $t;
     }
 
     private function postNote(Request $request)

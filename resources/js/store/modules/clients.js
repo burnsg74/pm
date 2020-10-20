@@ -40,11 +40,11 @@ export default {
         },
     },
     actions: {
-        updateClientDetail({commit, state}, markdown) {
-            console.log('updateClientDetail')
-            api.updateClientDetail(state.data[state.selectedClientIdx].id, markdown).then(function (response) {
-                let html = response.data.payload
-                commit('SET_CLIENT_NOTE', {markdown, html})
+        updateClientNotes({commit, state}, notes) {
+            console.log('updateClient')
+            commit('SET_CLIENT_NOTES', notes)
+            api.updateClient(state.data[state.selectedClientIdx]).then(function (response) {
+                console.log('Saved', response)
             })
         },
         updateProjectDetail({commit, state}, markdown) {
@@ -80,11 +80,38 @@ export default {
         setTask({commit, state}, id) {
             commit('SET_CLIENT_IDX', state.data.findIndex(item => item.id == id))
         },
-        updateTask({commit}, payload) {
-            commit('UPDATE_TASK', payload)
+        updateTask({commit, state}, payload) {
+            console.log('updateTask')
+            payload = {
+                ...payload,
+                'id':state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus][state.selectedTaskIdx].id,
+                'client_id': state.data[state.selectedClientIdx].id,
+                'project_id': state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].id
+            }
+            console.log('Update Task ', payload)
+            api.updateTask(payload).then(function (response) {
+                commit('UPDATE_TASK', response.data.payload)
+            })
         },
-        addTask({commit}, payload) {
-            commit('ADD_TASK', payload)
+        addTask({commit, state}, payload) {
+            payload = {
+                ...payload,
+                'client_id': state.data[state.selectedClientIdx].id,
+                'project_id': state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].id
+            }
+            console.log('add Task 2', payload)
+            api.addTask(payload).then(function (response) {
+                commit('ADD_TASK', response.data.payload)
+            })
+        },
+        deleteTask({commit, state}, payload) {
+            let task = state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus][state.selectedTaskIdx]
+            console.log('Task', task)
+            api.deleteTask(task).then(function (response) {
+                console.log('Saved', response)
+                commit('DELETE_TASK')
+                commit('INCREMENT_TASK')
+            })
         },
         nextTask({commit}) {
             commit('INCREMENT_TASK')
@@ -110,15 +137,15 @@ export default {
         UPDATE_CLIENTS(state, payload) {
             state.data = payload
         },
-        SET_CLIENT_NOTE(state, payload) {
-            state.data[state.selectedClientIdx].markdown = payload.markdown
-            state.data[state.selectedClientIdx].html = payload.html
+        SET_CLIENT_NOTES(state, payload) {
+            state.data[state.selectedClientIdx].notes = payload
         },
         SET_PROJECT_NOTE(state, payload) {
             state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].markdown = payload.markdown
             state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].html = payload.html
         },
         ADD_TASK(state, payload) {
+            console.log('Adding Task',payload)
             state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[payload.status].push(payload)
             state.selectedTaskStatus = payload.status
             state.selectedTaskIdx = state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[payload.status].length - 1
@@ -128,6 +155,10 @@ export default {
             state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[payload.status].push(payload)
             state.selectedTaskStatus = payload.status
             state.selectedTaskIdx = state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[payload.status].length - 1
+        },
+        DELETE_TASK(state) {
+            console.log('DELETE_TASK')
+            state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus].splice(state.selectedTaskIdx, 1);
         },
         INCREMENT_TASK(state) {
             if (state.selectedTaskIdx === state.data[state.selectedClientIdx].projects[state.selectedProjectIdx].tasks[state.selectedTaskStatus].length - 1) {

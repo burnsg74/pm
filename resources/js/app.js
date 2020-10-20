@@ -6,6 +6,7 @@ import Axios from 'axios';
 import { loadProgressBar } from 'axios-progress-bar'
 import 'axios-progress-bar/dist/nprogress.css'
 import store from './store/index';
+import layout from './pages/Layout'
 
 window.Vue = Vue;
 window.axios = Axios
@@ -28,26 +29,9 @@ const app = new Vue({
     router,
     store,
     components: {Clock},
-    data: () => ({
-        drawer: null,
-        drawerRight: null,
-        right: false,
-        left: false,
-        items: [
-            {
-                text: 'Dashboard',
-                disabled: false,
-                to: '/',
-            },
-        ],
-    }),
-    computed: {
-        breadcums: function () {
-            return this.$store.state.breadcum.data
-        }
-    },
     created () {
         this.$vuetify.theme.dark = true
         this.$store.dispatch('loadEvents')
     },
+    render: h => h(layout)
 });
