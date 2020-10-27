@@ -8,8 +8,13 @@ class Task extends Model
 {
     protected $fillable = ['code'];
 
-    public function note()
+    public function worklogs()
     {
-        return $this->belongsTo('App\Models\Note', 'note_id');
+        return $this->hasMany('App\Models\WorkLog');
+    }
+
+    public function history()
+    {
+        return $this->hasMany('App\Models\History');
     }
 }

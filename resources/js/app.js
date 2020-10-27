@@ -32,6 +32,12 @@ const app = new Vue({
     created () {
         this.$vuetify.theme.dark = true
         this.$store.dispatch('loadEvents')
+        let vue = this
+        axios.get('/ajax/clients').then(res => {
+            vue.$store.commit('SET_CLIENTS', res.data.payload)
+        }).catch(error => {
+            console.log(error.response)
+        })
     },
     render: h => h(layout)
 });

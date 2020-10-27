@@ -1,5 +1,4 @@
 import VueRouter from "vue-router";
-import Dashboard from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import Clients from "./pages/Clients";
 import Client from "./pages/Client";
@@ -9,6 +8,7 @@ import Project from "./pages/Project";
 import Tasks from "./pages/Tasks";
 import Tasknew from "./pages/Tasknew";
 import Taskedit from "./pages/Taskedit";
+import Taskwork from "./pages/TaskWork";
 
 export default new VueRouter({
     mode: 'history',
@@ -47,6 +47,11 @@ export default new VueRouter({
             name: 'task-edit',
             path: '/task/edit',
             component: Taskedit
+        },
+        {
+            name: 'task-work',
+            path: '/task/work',
+            component: Taskwork
         },
         {
             name: 'notes',

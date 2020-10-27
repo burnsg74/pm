@@ -16,11 +16,11 @@ use Parsedown;
 
 class AjaxController extends Controller
 {
-    public function __invoke(Request $request, $item,$id=null)
+    public function __invoke(Request $request, $item, $id = null)
     {
         try {
             $function = strtolower($request->method()) . ucwords($item);
-            $payload  = $this->$function($request,$id);
+            $payload  = $this->$function($request, $id);
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -44,27 +44,15 @@ class AjaxController extends Controller
         return $this->getClients($request);
     }
 
-    private function putClient(Request $request)
-    {
-        $id   = $request->get('id');
-        $notes = $request->get('notes');
-
-        $client       = Client::find($id);
-        $client->notes = $notes;
-        $client->save();
-
-        return $client;
-    }
-
     private function getClients(Request $request)
     {
-        $res       = [];
-        $clients   = Client::where('status', 'Active')->orderBy('order')->orderBy('updated_at')->get();
+        $res     = [];
+        $clients = Client::where('status', 'Active')->orderBy('order')->orderBy('updated_at')->get();
         foreach ($clients as $client) {
-            $item = $client->toArray();
+            $item             = $client->toArray();
             $item['projects'] = [];
             foreach ($client->projects as $project) {
-                $p = $project->toArray();
+                $p          = $project->toArray();
                 $p['tasks'] = [
                     'Backlog'     => [],
                     'In-Progress' => [],
@@ -72,7 +60,13 @@ class AjaxController extends Controller
                     'Done'        => []
                 ];
                 foreach ($project->tasks as $task) {
-                    $t = $task->toArray();
+                    $t                           = $task->toArray();
+                    foreach ($task->worklogs as $worklog) {
+                       $t['worklogs'][] = $worklog->toArray();
+                    }
+                    foreach ($task->history as $history) {
+                        $t['history'][] = $history->toArray();
+                    }
                     $p['tasks'][$task->status][] = $t;
                 }
                 $item['projects'][] = $p;
@@ -84,16 +78,16 @@ class AjaxController extends Controller
         return $res;
     }
 
-    private function removeMetas($content)
+    private function putClient(Request $request)
     {
-        $newContent = '';
-        foreach (preg_split("/(^[\r\n]*|[\r\n]*|[\n]+)[\s\t]*[\r\n]+/", $content) as $line) {
-            if (substr($line, 0, 6) === '<meta ') {
-                continue;
-            }
-            $newContent .= $line . PHP_EOL;
-        }
-        return $newContent;
+        $id    = $request->get('id');
+        $notes = $request->get('notes');
+
+        $client        = Client::find($id);
+        $client->notes = $notes;
+        $client->save();
+
+        return $client;
     }
 
     private function removeWorklogs($task, string $content)
@@ -193,6 +187,18 @@ class AjaxController extends Controller
         return true;
     }
 
+    private function removeMetas($content)
+    {
+        $newContent = '';
+        foreach (preg_split("/(^[\r\n]*|[\r\n]*|[\n]+)[\s\t]*[\r\n]+/", $content) as $line) {
+            if (substr($line, 0, 6) === '<meta ') {
+                continue;
+            }
+            $newContent .= $line . PHP_EOL;
+        }
+        return $newContent;
+    }
+
     private function putTaskorder(Request $request)
     {
         $tasks = $request->get('tasks');
@@ -290,29 +296,9 @@ class AjaxController extends Controller
         return $task;
     }
 
-    private function deleteTask(Request $request, $id) {
-        Task::find($id)->delete();
-    }
-
-    private function getTasks(Request $request)
+    private function deleteTask(Request $request, $id)
     {
-        dd('STOP, I did not think this was true');
-        $tasks = Task::all();
-        foreach ($tasks as $task) {
-            if (!file_exists($task->note->full_path)) continue;
-            $contents = file_get_contents($task->note->full_path);
-
-
-            // Get Worklog
-            // Get History
-
-
-            $parsedown      = new Parsedown();
-            $task->path     = $task->note->full_path;
-            $task->markdown = $this->removeMetas($contents);
-            $task->html     = $parsedown->text($contents);
-        }
-        return $tasks;
+        Task::find($id)->delete();
     }
 
     private function putTask(Request $request)
@@ -326,9 +312,9 @@ class AjaxController extends Controller
         $order        = $request->input('order') ?? 0;
         $status       = $request->input('status');
 
-        $task       = Task::find($request->input('id'));
-        $client       = Client::find($request->input('client_id'));
-        $project      = Project::find($request->input('project_id'));
+        $task    = Task::find($request->input('id'));
+        $client  = Client::find($request->input('client_id'));
+        $project = Project::find($request->input('project_id'));
 
         $task->client_id    = $client->id;
         $task->project_id   = $project->id;

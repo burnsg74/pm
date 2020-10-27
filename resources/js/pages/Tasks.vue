@@ -29,35 +29,9 @@
         </v-row>
         <!-- Status Tab Details -->
         <v-row class="ml-3 mr-3">
-            <!-- Add new Task -->
-            <v-col v-show="isAdding" class="active-tab">
-                <v-row>
-                    <v-col cols="10">
-                        <v-row fluid>
-                            <v-col md="12">
-                                <v-text-field v-model="editingTask.code" label="Ticket Number"></v-text-field>
-                                <v-text-field v-model="editingTask.name" label="Name"></v-text-field>
-                                <v-textarea
-                                    v-model="editingTask.markdown"
-                                    label="Markdown"
-                                ></v-textarea>
-                            </v-col>
-                        </v-row>
-                    </v-col>
-                    <v-col cols="2">
-                        <v-select
-                            v-model="editingTask.status"
-                            :items="statuses"
-                            label="Status"
-                        ></v-select>
-                        <v-btn color="primary" small @click="save">Save</v-btn>
-                    </v-col>
-                </v-row>
-            </v-col>
-
             <!-- Viewing Task -->
-            <v-col v-show="isViewing" class="active-tab">
-                <v-row class="view-app-bar" v-if="!isEditingTask && task !== undefined ">
+            <v-col v-if="task !== undefined" v-show="isViewing" class="active-tab">
+                <v-row class="view-app-bar" v-if="task !== undefined">
                     <v-col>
                         <v-icon class="float-left" @click="prev">mdi-chevron-left-box-outline</v-icon>
                         <v-icon class="float-left" @click="next">mdi-chevron-right-box-outline</v-icon>
@@ -68,7 +42,7 @@
                         <v-icon class="float-right" @click="toggleView">mdi-close-box</v-icon>
                     </v-col>
                 </v-row>
-                <v-row v-on:dblclick="toggleEditingTask">
+                <v-row>
                     <router-link
                         style="text-decoration: none "
                         :to="{ name: 'task-edit', params: task.id}"
@@ -78,8 +52,16 @@
                             Edit Task
                         </v-btn>
                     </router-link>
+                    <router-link
+                        style="text-decoration: none "
+                        :to="{ name: 'task-work', params: task.id}"
+                    >
+                        <v-btn
+                            elevation="2">Start Work
+                        </v-btn>
+                    </router-link>
                     <!-- View Task -->
-                    <v-col v-if="!isEditingTask && task !== undefined " cols="12">
+                    <v-col v-if="task !== undefined" cols="12">
                         <div class="html-viewer" style="color: white" v-html="task.notes"></div>
                         <v-btn
                             depressed
@@ -89,28 +71,10 @@
                             Delete
                         </v-btn>
                     </v-col>
-                    <!-- Edit Task -->
-                    <v-col cols="12">
-                        <v-row fluid>
-                            <v-col v-if="isEditingTask" md="12">
-                                <v-text-field v-model="editingTask.code" label="Ticket Number"></v-text-field>
-                                <v-select
-                                    v-model="editingTask.status"
-                                    :items="statuses"
-                                    label="Status"
-                                ></v-select>
-                                <v-text-field v-model="editingTask.name" label="Name"></v-text-field>
-                                <v-textarea
-                                    v-model="editingTask.markdown"
-                                    label="Markdown"
-                                ></v-textarea>
-                            </v-col>
-                        </v-row>
-                    </v-col>
                 </v-row>
             </v-col>
             <!-- Status List -->
-            <v-col v-show="!isAdding && !isViewing" class="active-tab">
+            <v-col v-show="!isViewing" class="active-tab">
                 <table class="tablet_mac">
                     <draggable v-model="tasks" group="tasks"
                                @end="drag=false" @start="drag=true">
@@ -131,7 +95,7 @@ import { Editor, EditorContent, EditorMenuBar } from 'tiptap'
 import { Bold, Italic, Link, HardBreak, Heading,Blockquote } from 'tiptap-extensions'
 
 export default {
-    name: 'Dashboard',
+    name: 'Tasks',
     components: {
         draggable,
         EditorMenuBar,
@@ -139,9 +103,7 @@ export default {
     },
     data() {
     return {
-        isEditing: false,
         isEditingTask: false,
-        isAdding: false,
         isViewing: false,
         clientDetailVisible: false,
         clientDetailIsEditing: false,
@@ -220,41 +182,9 @@ export default {
         setCleint: function (idx) {
             this.$store.dispatch('setSelectedClientIdx', idx)
         },
-        toggleAdd: function () {
-            this.editingTask = {
-                code: '',
-                name: '',
-                markdown: '',
-                status: this.clients.selectedTaskStatus
-            }
-            this.isAdding = !this.isAdding
-        },
         toggleView: function (idx) {
             this.$store.dispatch('setSelectedTaskIdx', idx)
             this.isViewing = !this.isViewing
-        },
-        toggleEditingTask: function () {
-            if (this.isEditingTask === false) {
-                this.editingTask = JSON.parse(JSON.stringify(this.task));
-                this.isEditingTask = true;
-            } else {
-                this.isEditingTask = false;
-
-                let vue = this
-                // Need to Track Old Status so we can grap it here
-                axios.put('/ajax/task', {
-                    id: this.editingTask.id,
-                    status: this.editingTask.status,
-                    code: this.editingTask.code,
-                    name: this.editingTask.name,
-                    markdown: this.editingTask.markdown,
-                }).then(res => {
-                    this.$store.dispatch('updateTask', res.data.payload)
-                }).catch(error => {
-                    console.log(error.response)
-                })
-                this.editingTask = {};
-            }
         },
         prev: function () {
             this.$store.dispatch('prevTask')
@@ -299,26 +229,6 @@ export default {
         update: function () {
             this.isViewing = !this.isViewing
         },
-        save: function () {
-            this.isAdding = false;
-            let client = this.$store.getters.getClient()
-            let project = this.$store.getters.getProject()
-
-            axios.post('/ajax/task', {
-                client_id: client.id,
-                project_id: project.id,
-                code: this.editingTask.code,
-                status: this.editingTask.status,
-                name: this.editingTask.name,
-                markdown: this.editingTask.markdown,
-            }).then(res => {
-                this.$store.dispatch('addTask', res.data.payload)
-                this.isViewing = true
-            }).catch(error => {
-                console.log('ERROR')
-                console.log(error)
-            })
-        },
         setStatus: function (value) {
             console.log(value);
         },
@@ -330,7 +240,6 @@ export default {
 }
 </script>
 <style scoped>
-
 
 .html-viewer {
 }

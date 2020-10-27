@@ -39,7 +39,7 @@ import {Editor, EditorContent, EditorMenuBar} from 'tiptap'
 import {Bold, Italic, Link, HardBreak, Heading, Blockquote} from 'tiptap-extensions'
 
 export default {
-    name: 'Tasknew',
+    name: 'TaskWork',
     components: {
         EditorMenuBar,
         EditorContent,
