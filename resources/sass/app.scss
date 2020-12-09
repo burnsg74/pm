@@ -1,0 +1,7 @@
+@import 'variables';
+@import "~vuetify/dist/vuetify.min.css";
+@import "~@mdi/font/css/materialdesignicons.min.css";
+@import "~material-design-icons-iconfont/dist/material-design-icons.css";
+
+[v-cloak] > * { display:none; }
+[v-cloak]::before { content: "loading..."; }
