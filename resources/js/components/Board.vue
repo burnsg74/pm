@@ -10,7 +10,7 @@
                 >
                     <v-card class="mb-2" elevation="2">
                         <v-card-title>
-                            <a v-on:click="viewTask(index)">{{project.code}}-{{ task.code }}</a>
+                            <a v-on:click="viewTask(status,index)">{{project.code}}-{{ task.code }}</a>
                         </v-card-title>
                         <v-card-text>
                             {{ task.name }}
@@ -52,8 +52,9 @@ export default {
         taskByStatus: function (status) {
             return this.$store.getters.getTasksByStatus(status)
         },
-        viewTask: function (idx) {
-            this.$store.dispatch('selectedTaskIdx', idx)
+        viewTask: function (status, idx) {
+            console.log('View',status,idx)
+            this.$store.dispatch('selectTask', {status,idx})
             this.$store.dispatch('setView', 'task-view')
         },
         changeTaskLocation: function(status, event) {

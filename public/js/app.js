@@ -2863,8 +2863,12 @@ __webpack_require__.r(__webpack_exports__);
     taskByStatus: function taskByStatus(status) {
       return this.$store.getters.getTasksByStatus(status);
     },
-    viewTask: function viewTask(idx) {
-      this.$store.dispatch('selectedTaskIdx', idx);
+    viewTask: function viewTask(status, idx) {
+      console.log('View', status, idx);
+      this.$store.dispatch('selectTask', {
+        status: status,
+        idx: idx
+      });
       this.$store.dispatch('setView', 'task-view');
     },
     changeTaskLocation: function changeTaskLocation(status, event) {
@@ -26059,7 +26063,7 @@ var render = function() {
                               {
                                 on: {
                                   click: function($event) {
-                                    return _vm.viewTask(index)
+                                    return _vm.viewTask(status, index)
                                   }
                                 }
                               },
@@ -88118,6 +88122,7 @@ __webpack_require__.r(__webpack_exports__);
 var getDefaultState = function getDefaultState() {
   return {
     selectedProjectIdx: 0,
+    selectedTaskStatus: 'Backlog',
     selectedTaskIdx: 0,
     items: []
   };
@@ -88137,7 +88142,7 @@ var getters = {
   },
   getTask: function getTask(state) {
     return function () {
-      return state.items[state.selectedProjectIdx].tasks[state.selectedTaskIdx];
+      return state.items[state.selectedProjectIdx].tasks[state.selectedTaskStatus][state.selectedTaskIdx];
     };
   },
   getTasksByStatus: function getTasksByStatus(state) {
@@ -88151,13 +88156,20 @@ var actions = {
     var commit = _ref.commit;
     commit('SET_PROJECT_IDX', idx);
   },
-  selectedTaskIdx: function selectedTaskIdx(_ref2, idx) {
-    var commit = _ref2.commit;
+  selectTask: function selectTask(_ref2, payload) {
+    var commit = _ref2.commit,
+        state = _ref2.state;
+    console.log(payload);
+    commit('SET_SELECTED_TASK_STATUS', payload.status);
+    commit('SET_SELECTED_TASK_IDX', payload.idx);
+  },
+  selectedTaskIdx: function selectedTaskIdx(_ref3, idx) {
+    var commit = _ref3.commit;
     commit('SET_TASK_IDX', idx);
   },
-  saveProjectNotes: function saveProjectNotes(_ref3, markdown) {
-    var commit = _ref3.commit,
-        state = _ref3.state;
+  saveProjectNotes: function saveProjectNotes(_ref4, markdown) {
+    var commit = _ref4.commit,
+        state = _ref4.state;
     var project = state.items[state.selectedProjectIdx];
     _api__WEBPACK_IMPORTED_MODULE_0__["default"].saveProjectNotes(project.id, markdown).then(function (response) {
       var html = response.data.payload;
@@ -88167,9 +88179,9 @@ var actions = {
       });
     });
   },
-  saveClientNotes: function saveClientNotes(_ref4, markdown) {
-    var commit = _ref4.commit,
-        state = _ref4.state;
+  saveClientNotes: function saveClientNotes(_ref5, markdown) {
+    var commit = _ref5.commit,
+        state = _ref5.state;
     var project = state.items[state.selectedProjectIdx];
     _api__WEBPACK_IMPORTED_MODULE_0__["default"].saveClientNotes(project.id, markdown).then(function (response) {
       var html = response.data.payload;
@@ -88179,9 +88191,9 @@ var actions = {
       });
     });
   },
-  saveNewTask: function saveNewTask(_ref5, newTask) {
-    var commit = _ref5.commit,
-        state = _ref5.state;
+  saveNewTask: function saveNewTask(_ref6, newTask) {
+    var commit = _ref6.commit,
+        state = _ref6.state;
     console.log('SNT', newTask);
     var project = state.items[state.selectedProjectIdx];
     _api__WEBPACK_IMPORTED_MODULE_0__["default"].saveNewTask([project.id, newTask]).then(function (response) {
@@ -88189,18 +88201,18 @@ var actions = {
       commit('ADD_TASK', task);
     });
   },
-  updateTask: function updateTask(_ref6, task) {
-    var commit = _ref6.commit,
-        state = _ref6.state;
+  updateTask: function updateTask(_ref7, task) {
+    var commit = _ref7.commit,
+        state = _ref7.state;
     console.log('SNT', task);
     _api__WEBPACK_IMPORTED_MODULE_0__["default"].updateTask(task).then(function (response) {
       var task = response.data.payload;
       commit('UPDATE_TASK', task);
     });
   },
-  changeTaskLocationReorderTask: function changeTaskLocationReorderTask(_ref7, payload) {
-    var commit = _ref7.commit,
-        state = _ref7.state;
+  changeTaskLocationReorderTask: function changeTaskLocationReorderTask(_ref8, payload) {
+    var commit = _ref8.commit,
+        state = _ref8.state;
     console.log('changeTaskLocation', payload);
     var action = Object.keys(payload.event)[0];
     console.log('Action', action);
@@ -88243,12 +88255,12 @@ var actions = {
         break;
     }
   },
-  nextTask: function nextTask(_ref8) {
-    var commit = _ref8.commit;
+  nextTask: function nextTask(_ref9) {
+    var commit = _ref9.commit;
     commit('INCREMENT_TASK');
   },
-  prevTask: function prevTask(_ref9) {
-    var commit = _ref9.commit;
+  prevTask: function prevTask(_ref10) {
+    var commit = _ref10.commit;
     commit('DECREMENT_TASK');
   }
 };
@@ -88267,6 +88279,12 @@ var mutations = {
   },
   SET_TASK_IDX: function SET_TASK_IDX(state, payload) {
     state.selectedTaskIdx = payload;
+  },
+  SET_SELECTED_TASK_IDX: function SET_SELECTED_TASK_IDX(state, payload) {
+    state.selectedTaskIdx = payload;
+  },
+  SET_SELECTED_TASK_STATUS: function SET_SELECTED_TASK_STATUS(state, payload) {
+    state.selectedTaskStatus = payload;
   },
   SET_PROJECT_NOTES: function SET_PROJECT_NOTES(state, payload) {
     state.items[state.selectedProjectIdx].project_notes_html = payload.html;

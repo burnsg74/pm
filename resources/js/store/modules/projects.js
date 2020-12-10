@@ -3,6 +3,7 @@ import api from "../../api";
 const getDefaultState = () => {
     return {
         selectedProjectIdx: 0,
+        selectedTaskStatus: 'Backlog',
         selectedTaskIdx: 0,
         items: [],
     }
@@ -17,7 +18,7 @@ const getters = {
         return state.items[state.selectedProjectIdx].tasks
     },
     getTask: state => () => {
-        return state.items[state.selectedProjectIdx].tasks[state.selectedTaskIdx]
+        return state.items[state.selectedProjectIdx].tasks[state.selectedTaskStatus][state.selectedTaskIdx]
     },
     getTasksByStatus: state => (status) => {
         return state.items[state.selectedProjectIdx].tasks[status]
@@ -26,6 +27,12 @@ const getters = {
 const actions = {
     setSelectedProjectIdx({commit}, idx) {
         commit('SET_PROJECT_IDX', idx)
+    },
+    selectTask({commit, state}, payload){
+        console.log(payload)
+
+        commit('SET_SELECTED_TASK_STATUS', payload.status)
+        commit('SET_SELECTED_TASK_IDX', payload.idx)
     },
     selectedTaskIdx({commit}, idx) {
         commit('SET_TASK_IDX', idx)
@@ -112,6 +119,12 @@ const mutations = {
     },
     SET_TASK_IDX(state, payload) {
         state.selectedTaskIdx = payload
+    },
+    SET_SELECTED_TASK_IDX(state, payload){
+        state.selectedTaskIdx = payload
+    },
+    SET_SELECTED_TASK_STATUS(state, payload){
+        state.selectedTaskStatus = payload
     },
     SET_PROJECT_NOTES(state, payload) {
         state.items[state.selectedProjectIdx].project_notes_html = payload.html
