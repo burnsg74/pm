@@ -20,7 +20,9 @@ export default {
         });
     },
     updateTaskOrder(payload) {
-        return axios.put('/ajax/taskorder', {tasks: payload});
+        let status = payload.status;
+        let tasks = payload.tasks;
+        return axios.put('/ajax/taskorder', {status, tasks});
     },
     updateClientOrder(payload) {
         return axios.put('/ajax/clientorder', {clients: payload});
@@ -35,11 +37,11 @@ export default {
         return axios.get('/ajax/notes');
     },
     saveNewTask(payload) {
-        console.log('saveNewTask',payload)
-        return axios.post('/ajax/task', {id: payload[0], task:payload[1]});
+        console.log('saveNewTask', payload)
+        return axios.post('/ajax/task', {id: payload[0], task: payload[1]});
     },
     updateTask(payload) {
-        console.log('updateTask',payload)
+        console.log('updateTask', payload)
         return axios.put('/ajax/task', payload);
     },
     deleteTask(payload) {

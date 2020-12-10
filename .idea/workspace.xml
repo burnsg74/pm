@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4bb91682-b351-4ba4-b871-196eb60ae6b9" name="Default Changelist" comment="" />
+    <list default="true" id="4bb91682-b351-4ba4-b871-196eb60ae6b9" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/AjaxController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/AjaxController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/public/js/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/api/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/api/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/Board.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/Board.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/TaskView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/TaskView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/store/modules/projects.js" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/store/modules/projects.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -367,7 +375,10 @@
       <workItem from="1607351430539" duration="3473000" />
       <workItem from="1607438223797" duration="3021000" />
       <workItem from="1607472088403" duration="9000" />
-      <workItem from="1607480743123" duration="642000" />
+      <workItem from="1607480743123" duration="10261000" />
+      <workItem from="1607570823472" duration="133000" />
+      <workItem from="1607571060475" duration="2085000" />
+      <workItem from="1607612874254" duration="691000" />
     </task>
     <option name="localTasksCounter" value="6" />
     <option name="updateInterval" value="5" />

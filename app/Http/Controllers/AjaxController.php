@@ -86,12 +86,11 @@ class AjaxController extends Controller
 
     private function putClientnotes(Request $request)
     {
-
         $parsedown     = new Parsedown();
         $id            = $request->get('id');
         $note_markdown = $request->get('markdown');
 
-        $project                = Project::find($id);
+        $project                        = Project::find($id);
         $project->client_notes_markdown = $note_markdown;
         $project->client_notes_html     = $parsedown->text($project->client_notes_markdown);
         $project->save();
@@ -142,22 +141,25 @@ class AjaxController extends Controller
 
     private function putTaskorder(Request $request)
     {
+
+        $status = $request->get('status');
         $tasks = $request->get('tasks');
         $order = 1;
+
         foreach ($tasks as $task) {
-            $dbRecord        = Task::find($task['id']);
-            $dbRecord->order = $order;
+            $dbRecord         = Task::find($task['id']);
+            $dbRecord->status = $status;
+            $dbRecord->order  = $order;
             $dbRecord->save();
 
-            $note_markdown = file_get_contents($dbRecord->folder . '/index.md');
-            $note_markdown = $this->removeMetas($note_markdown);
-            $meta     = "<meta name='name' content='{$dbRecord->name}'>" . PHP_EOL;
-            $meta     .= "<meta name='started_at' content='{$dbRecord->started_at}'>" . PHP_EOL;
-            $meta     .= "<meta name='completed_at' content='{$dbRecord->completed_at}'>" . PHP_EOL;
-            $meta     .= "<meta name='duration' content='{$dbRecord->duration}'>" . PHP_EOL;
-            $meta     .= "<meta name='order' content='{$order}'>" . PHP_EOL;
-            $content  = $meta . PHP_EOL . $note_markdown;
-            file_put_contents($dbRecord->folder . '/index.md', $content);
+            $meta    = "<meta name='name' content='{$dbRecord->name}'>" . PHP_EOL;
+            $meta    .= "<meta name='started_at' content='{$dbRecord->started_at}'>" . PHP_EOL;
+            $meta    .= "<meta name='completed_at' content='{$dbRecord->completed_at}'>" . PHP_EOL;
+            $meta    .= "<meta name='duration' content='{$dbRecord->duration}'>" . PHP_EOL;
+            $meta    .= "<meta name='order' content='{$order}'>" . PHP_EOL;
+            $meta    .= "<meta name='status' content='{$dbRecord->status}'>" . PHP_EOL;
+            $content = $meta . PHP_EOL . $dbRecord->note_markdown;
+            file_put_contents($dbRecord->folder, $content);
 
             $order++;
         }
@@ -177,10 +179,17 @@ class AjaxController extends Controller
 
     private function getProjects(Request $request)
     {
-        $projects = Project::where('status','Active')->get();
+        $projects = Project::where('status', 'Active')->orderBy('order')->orderBy('updated_at')->get();
         foreach ($projects as $key => $project) {
             $projects[$key]->statuses = json_decode($project->statuses);
-            $projects[$key]->tasks = $project->tasks;
+            foreach ($projects[$key]->statuses as $status) {
+                $tasks[$status] = Task::where('status', $status)
+                                      ->where('project_id', $project->id)
+                                      ->orderBy('order')
+                                      ->orderBy('updated_at')
+                                      ->get();
+            }
+            $projects[$key]->tasks = $tasks;
         }
         return $projects;
     }
@@ -191,7 +200,7 @@ class AjaxController extends Controller
         $id            = $request->get('id');
         $note_markdown = $request->get('markdown');
 
-        $project                = Project::find($id);
+        $project                         = Project::find($id);
         $project->project_notes_markdown = $note_markdown;
         $project->project_notes_html     = $parsedown->text($project->project_notes_markdown);
         $project->save();
@@ -208,19 +217,19 @@ class AjaxController extends Controller
 
     private function postTask(Request $request)
     {
-        $id = $request->input('id');
+        $id   = $request->input('id');
         $task = $request->input('task');
 
-        $parsedown    = new Parsedown();
-        $project     = Project::find($id);
+        $parsedown = new Parsedown();
+        $project   = Project::find($id);
 
         // 2020-12-01-19-34-01-Add-Something
-        $ticketFilename = date('Y-m-d-H-i-s-') . str_replace(' ', '-', $task['name']).'.md';
-        $meta    = "<meta name='name' content='{$task['name']}'>" . PHP_EOL;
-        $meta    .= "<meta name='code' content='{$task['code']}'>" . PHP_EOL;
-        $meta    .= "<meta name='status' content='{$task['status']}'>" . PHP_EOL;
-        $fullPath = $project->folder . '/tasks/' . $ticketFilename;
-        $content = $meta . PHP_EOL . $task['markdown'];
+        $ticketFilename = date('Y-m-d-H-i-s-') . str_replace(' ', '-', $task['name']) . '.md';
+        $meta           = "<meta name='name' content='{$task['name']}'>" . PHP_EOL;
+        $meta           .= "<meta name='code' content='{$task['code']}'>" . PHP_EOL;
+        $meta           .= "<meta name='status' content='{$task['status']}'>" . PHP_EOL;
+        $fullPath       = $project->folder . '/tasks/' . $ticketFilename;
+        $content        = $meta . PHP_EOL . $task['markdown'];
 
         if (!file_exists($project->folder . '/tasks')) {
             mkdir($project->folder . '/tasks', 0777, true);
@@ -250,36 +259,36 @@ class AjaxController extends Controller
     {
         $parsedown = new Parsedown();
 
-        $id            = $request->input('id');
-        $code          = $request->input('code');
-        $name          = $request->input('name');
-        $note_markdown = $request->input('note_markdown');
-        $scratchpad_markdown = $request->input('scratchpad_markdown','');
-        $status = $request->input('status');
+        $id                  = $request->input('id');
+        $code                = $request->input('code');
+        $name                = $request->input('name');
+        $note_markdown       = $request->input('note_markdown');
+        $scratchpad_markdown = $request->input('scratchpad_markdown', '');
+        $status              = $request->input('status');
         //$worklogStart        = $request->input('worklog_start', null);
         //$worklogEnd          = $request->input('worklog_end', null);
 
-        $task                = Task::find($id);
-        $task->name          = $name;
-        $task->code          = $code;
-        $task->status        = $status;
-        $task->note_markdown = $note_markdown;
-        $task->note_html     = $parsedown->text($task->note_markdown);
+        $task                      = Task::find($id);
+        $task->name                = $name;
+        $task->code                = $code;
+        $task->status              = $status;
+        $task->note_markdown       = $note_markdown;
+        $task->note_html           = $parsedown->text($task->note_markdown);
         $task->scratchpad_markdown = $scratchpad_markdown;
         $task->scratchpad_html     = $parsedown->text($task->scratchpad_markdown);
         $task->save();
 
-        $meta    = "<meta name='name' content='{$task['name']}'>" . PHP_EOL;
-        $meta    .= "<meta name='code' content='{$task['code']}'>" . PHP_EOL;
-        $meta    .= "<meta name='status' content='{$task['status']}'>" . PHP_EOL;
+        $meta     = "<meta name='name' content='{$task['name']}'>" . PHP_EOL;
+        $meta     .= "<meta name='code' content='{$task['code']}'>" . PHP_EOL;
+        $meta     .= "<meta name='status' content='{$task['status']}'>" . PHP_EOL;
         $fullPath = $task->folder;
-        $content = $meta . PHP_EOL . $task->note_markdown;
+        $content  = $meta . PHP_EOL . $task->note_markdown;
 
-        if (! empty($task->scratchpad_markdown)) {
+        if (!empty($task->scratchpad_markdown)) {
             $content .= PHP_EOL . PHP_EOL . '## SCRATCHPAD' . PHP_EOL . $task->scratchpad_markdown;
         }
 
-        $worklogRecs = WorkLog::where('task_id',$task->id)->get();
+        $worklogRecs = WorkLog::where('task_id', $task->id)->get();
         if ($worklogRecs) {
             $content .= PHP_EOL . PHP_EOL . '## WORKLOG' . PHP_EOL;
             foreach ($worklogRecs as $worklogRec) {
@@ -348,8 +357,6 @@ class AjaxController extends Controller
             $task->folder = $newFolder;
             $task->code   = strtoupper($code);
         }*/
-
-
         /*$started_at   = $request->input('started_at') ?? '';
         $completed_at = $request->input('completed_at') ?? '';
         $duration     = $request->input('duration') ?? 15;

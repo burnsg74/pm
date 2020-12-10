@@ -101,6 +101,7 @@ export default {
             this.$store.dispatch('setView', 'task-view')
         },
         prev: function () {
+            document.title='Test'
             this.$store.dispatch('prevTask')
         },
         next: function () {

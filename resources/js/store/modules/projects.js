@@ -13,13 +13,14 @@ const getters = {
     getProject: state => () => {
         return state.items[state.selectedProjectIdx]
     },
+    getTasks: state => () => {
+        return state.items[state.selectedProjectIdx].tasks
+    },
     getTask: state => () => {
         return state.items[state.selectedProjectIdx].tasks[state.selectedTaskIdx]
     },
     getTasksByStatus: state => (status) => {
-        return state.items[state.selectedProjectIdx].tasks.filter(
-            item => item.status == status
-        );
+        return state.items[state.selectedProjectIdx].tasks[status]
     },
 }
 const actions = {
@@ -57,6 +58,36 @@ const actions = {
             let task = response.data.payload
             commit('UPDATE_TASK', task)
         })
+    },
+    changeTaskLocationReorderTask({commit, state}, payload) {
+        console.log('changeTaskLocation', payload)
+        const action = Object.keys(payload.event)[0]
+        console.log('Action', action)
+        const status = payload.status
+        let task = ''
+        let oldIndex = ''
+        let newIndex = ''
+
+        switch (action) {
+            case 'moved':
+                console.log('Move me')
+                task = payload.event.moved.element
+                oldIndex = payload.event.moved.oldIndex
+                newIndex = payload.event.moved.newIndex
+                commit('REORDER_TASK', {status, oldIndex, newIndex})
+                break;
+            case 'added':
+                console.log('Add me')
+                task = payload.event.added.element
+                newIndex = payload.event.added.newIndex
+                commit('ADD_TASK_TO_IDX', {status, newIndex, task})
+                break;
+            case 'removed':
+                console.log('Remove me')
+                oldIndex = payload.event.removed.oldIndex
+                commit('REMOVE_TASK_IDX', {status, oldIndex})
+                break;
+        }
     },
     nextTask({commit}) {
         commit('INCREMENT_TASK')
@@ -103,6 +134,36 @@ const mutations = {
         } else {
             state.selectedTaskIdx--
         }
+    },
+    REORDER_TASK(state, payload) {
+        let status = payload.status;
+        let tasks = state.items[state.selectedProjectIdx].tasks[payload.status]
+
+        if (payload.newIndex >= tasks) {
+            let i = payload.newIndex - tasks.length + 1;
+            while (i--) {
+                tasks.push(undefined);
+            }
+        }
+        tasks.splice(payload.newIndex, 0, taskList.splice(payload.oldIndex, 1)[0]);
+
+        api.updateTaskOrder({status,tasks})
+    },
+    ADD_TASK_TO_IDX(state, payload) {
+        let status = payload.status;
+        let tasks = state.items[state.selectedProjectIdx].tasks[payload.status]
+
+        tasks.splice(payload.newIndex, 0, payload.task)
+
+        api.updateTaskOrder({status,tasks})
+    },
+    REMOVE_TASK_IDX(state, payload) {
+        let status = payload.status;
+        let tasks = state.items[state.selectedProjectIdx].tasks[payload.status]
+
+        tasks.splice(payload.oldIndex, 1)
+
+        api.updateTaskOrder({status,tasks})
     },
 }
 
