@@ -48,7 +48,13 @@ export default {
             }
         },
     },
+    created() {
+        window.addEventListener("keydown", this.logkey);
+    },
     methods: {
+        logkey: function(e) {
+            console.log('CODE',e.code)
+        },
         taskByStatus: function (status) {
             return this.$store.getters.getTasksByStatus(status)
         },

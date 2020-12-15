@@ -3,7 +3,6 @@ import Vuetify from 'vuetify';
 import Axios from './services/axios';
 import { loadProgressBar } from 'axios-progress-bar'
 import store from './store/index';
-
 import 'axios-progress-bar/dist/nprogress.css'
 
 window.Vue = Vue

@@ -7,10 +7,11 @@
                 <span class="ml-3">{{project.code}}-{{ task.code }} :: {{ task.name }}</span>
             </v-col>
             <v-col>
+                {{task.status}}
                 <v-icon class="float-right" @click="close">mdi-close-box</v-icon>
             </v-col>
         </v-row>
-        <v-row v-on:dblclick="toggleEditingTask">
+        <v-row>
             <!-- View Task -->
             <v-col v-if="!isEditingTask && task !== undefined " cols="12">
                 <v-card class="pa-3">
@@ -62,8 +63,17 @@
 <script>
 export default {
     name: "TaskView",
+    components: {
+        EditorContent,
+        EditorMenuBar,
+    },
     data: () => ({
         isEditingTask: false,
+            onUpdate: ({ getHTML }) => {
+                console.log(getHTML(),this)
+                const html = getHTML()
+                //this.logUpdate(getHTML())
+            },
         editingTask: {
             code: '',
             name: '',
@@ -76,7 +86,7 @@ export default {
             duration: '',
         },
         worklogStart: 0,
-        worklogDur: 0
+        worklogDur: 0,
     }),
     computed: {
         task: function () {

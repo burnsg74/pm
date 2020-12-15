@@ -135,7 +135,7 @@ const mutations = {
         state.items[state.selectedProjectIdx].client_notes_markdown = payload.markdown
     },
     INCREMENT_TASK(state) {
-        if (state.selectedTaskIdx === state.items[state.selectedProjectIdx].tasks.length - 1) {
+        if (state.selectedTaskIdx === state.items[state.selectedProjectIdx].tasks[state.selectedTaskStatus].length - 1) {
             state.selectedTaskIdx = 0
         } else {
             state.selectedTaskIdx++
@@ -143,7 +143,7 @@ const mutations = {
     },
     DECREMENT_TASK(state) {
         if (state.selectedTaskIdx === 0) {
-            state.selectedTaskIdx = state.items[state.selectedProjectIdx].tasks.length - 1
+            state.selectedTaskIdx = state.items[state.selectedProjectIdx].tasks[state.selectedTaskStatus].length - 1
         } else {
             state.selectedTaskIdx--
         }

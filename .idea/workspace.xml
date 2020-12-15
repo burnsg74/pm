@@ -2,8 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4bb91682-b351-4ba4-b871-196eb60ae6b9" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/Board.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/Board.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/TaskView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/TaskView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/store/modules/projects.js" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/store/modules/projects.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -374,7 +379,10 @@
       <workItem from="1607570823472" duration="133000" />
       <workItem from="1607571060475" duration="2085000" />
       <workItem from="1607612874254" duration="1290000" />
-      <workItem from="1607635094135" duration="1194000" />
+      <workItem from="1607635094135" duration="1677000" />
+      <workItem from="1607737958974" duration="7273000" />
+      <workItem from="1607987759113" duration="649000" />
+      <workItem from="1607998422092" duration="833000" />
     </task>
     <option name="localTasksCounter" value="6" />
     <option name="updateInterval" value="5" />
