@@ -25,6 +25,6 @@ class CreateMeetingsTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('work_logs');
+        Schema::dropIfExists('meetings');
     }
 }

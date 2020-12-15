@@ -64,16 +64,9 @@
 export default {
     name: "TaskView",
     components: {
-        EditorContent,
-        EditorMenuBar,
     },
     data: () => ({
         isEditingTask: false,
-            onUpdate: ({ getHTML }) => {
-                console.log(getHTML(),this)
-                const html = getHTML()
-                //this.logUpdate(getHTML())
-            },
         editingTask: {
             code: '',
             name: '',

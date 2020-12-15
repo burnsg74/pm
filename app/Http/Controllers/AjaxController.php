@@ -153,6 +153,7 @@ class AjaxController extends Controller
             $dbRecord->save();
 
             $meta    = "<meta name='name' content='{$dbRecord->name}'>" . PHP_EOL;
+            $meta    .= "<meta name='code' content='{$dbRecord->code}'>" . PHP_EOL;
             $meta    .= "<meta name='started_at' content='{$dbRecord->started_at}'>" . PHP_EOL;
             $meta    .= "<meta name='completed_at' content='{$dbRecord->completed_at}'>" . PHP_EOL;
             $meta    .= "<meta name='duration' content='{$dbRecord->duration}'>" . PHP_EOL;
