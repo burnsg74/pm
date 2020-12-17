@@ -32,7 +32,7 @@
         <a v-on:click="toggleProjectNotes()">
             <v-icon>mdi-folder</v-icon>
         </a>
-        <a v-on:click="toggleTaskNew()">
+        <a v-on:click="setView('task-new')" v-if="view !== 'task-new'">
             <v-icon style="background: green">mdi-plus-box-outline</v-icon>
         </a>
             <a v-if="view !== 'board'" v-on:click="showBoard()">
@@ -41,7 +41,7 @@
             </span>
         <v-spacer></v-spacer>
         <v-icon @click="refresh">refresh</v-icon>
-        <clock></clock>
+        <clock ></clock>
     </v-system-bar>
 </template>
 

@@ -4,6 +4,8 @@ import Axios from './services/axios';
 import { loadProgressBar } from 'axios-progress-bar'
 import store from './store/index';
 import 'axios-progress-bar/dist/nprogress.css'
+
+/*
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 
@@ -14,11 +16,11 @@ window.Echo = new Echo({
     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
     wsHost: window.location.hostname,
     wssHost: window.location.hostname,
-    wsPort: window.BROADCASTING_PORT,
-    wssPort: window.BROADCASTING_PORT,
+    wsPort: 6990,
+    wssPort: 6990,
     encrypted: true,
     disableStats: true
-});
+});*/
 
 window.Vue = Vue
 window.axios = Axios

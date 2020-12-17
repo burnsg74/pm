@@ -1,11 +1,19 @@
 <template>
     <div class="pa-3">
+        <v-btn
+            x-small
+            outlined
+            color="primary"
+            depressed
+            v-on:click="toggleEditingTask"
+        >Edit</v-btn>
         <v-row v-if="!isEditingTask && task !== undefined " class="view-app-bar">
             <v-col class="pa-3 lighten-1">
                 <v-icon class="float-left" @click="prev">mdi-chevron-left-box-outline</v-icon>
                 <v-icon class="float-left" @click="next">mdi-chevron-right-box-outline</v-icon>
                 <span class="ml-3">{{project.code}}-{{ task.code }} :: {{ task.name }}</span>
             </v-col>
+            <v-col>{{task.status}}</v-col>
             <v-col>
                 {{task.status}}
                 <v-icon class="float-right" @click="close">mdi-close-box</v-icon>
@@ -14,11 +22,36 @@
         <v-row>
             <!-- View Task -->
             <v-col v-if="!isEditingTask && task !== undefined " cols="12">
+                <h4>Details</h4>
                 <v-card class="pa-3">
                 <div class="html-viewer" style="color: white" v-html="task.note_html"></div>
-                <div class="html-viewer" style="color: white" v-html="task.scratchpad_html"></div>
                 </v-card>
             </v-col>
+            <v-col v-if="!isEditingTask && task !== undefined " cols="12">
+                <h4>Scratchpad</h4>
+                <v-card class="pa-3">
+                    <div class="html-viewer" style="color: white" v-html="task.scratchpad_html"></div>
+                </v-card>
+            </v-col>
+            <v-col v-if="!isEditingTask && task !== undefined " cols="12">
+                <h4>Comments</h4>
+                <v-card class="pa-3">
+                    <div class="html-viewer" style="color: white" ></div>
+                </v-card>
+            </v-col>
+            <v-col v-if="!isEditingTask && task !== undefined " cols="12">
+                <h4>Worklogs</h4>
+                <v-card class="pa-3">
+                    <div class="html-viewer" style="color: white" ></div>
+                </v-card>
+            </v-col>
+            <v-col v-if="!isEditingTask && task !== undefined " cols="12">
+                <h4>History</h4>
+                <v-card class="pa-3">
+                    <div class="html-viewer" style="color: white" ></div>
+                </v-card>
+            </v-col>
+
             <!-- Edit Task -->
             <v-col v-if="isEditingTask" cols="12">
                 <v-row fluid>

@@ -2,13 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4bb91682-b351-4ba4-b871-196eb60ae6b9" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/pm.dev.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/pm.dev.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/Main.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/Main.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/AppBar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/AppBar.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/Calendar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/Calendar.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/Clock.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/Clock.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/TaskNew.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/TaskNew.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/TaskView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/TaskView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/app.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/app.blade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -406,7 +408,9 @@
       <workItem from="1608003191392" duration="497000" />
       <workItem from="1608040996622" duration="1762000" />
       <workItem from="1608043963326" duration="1031000" />
-      <workItem from="1608158269210" duration="2721000" />
+      <workItem from="1608158269210" duration="3224000" />
+      <workItem from="1608162672251" duration="1524000" />
+      <workItem from="1608213911900" duration="3117000" />
     </task>
     <option name="localTasksCounter" value="6" />
     <option name="updateInterval" value="5" />

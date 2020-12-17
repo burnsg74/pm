@@ -1,5 +1,5 @@
 <template>
-    <span class="clock">{{ currentDateTime }}</span>
+    <span class="clock" v-on:click="setView('calendar')">{{ currentDateTime }}</span>
 </template>
 
 <script>
@@ -27,6 +27,9 @@ export default {
                 hour12: true,
             })
             this.currentDateTime = formatter.format(d)
+        },
+        setView: function (view) {
+            this.$store.dispatch('setView', view)
         }
     }
 }

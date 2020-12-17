@@ -53,13 +53,11 @@ export default {
     }),
     methods: {
         save: function () {
-            console.log('Save')
             this.$store.dispatch('saveNewTask',this.newTask)
             this.$store.dispatch('setShowTaskNew',false)
         },
         cancel: function () {
-            console.log('Cancel')
-            this.$store.dispatch('setShowTaskNew',false)
+            this.$store.dispatch('setView', 'board')
         }
     }
 }
