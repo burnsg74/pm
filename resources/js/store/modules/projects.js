@@ -109,7 +109,7 @@ const mutations = {
         state.items = payload
     },
     ADD_TASK(state, payload) {
-        state.items[state.selectedProjectIdx].tasks.push(payload)
+        state.items[state.selectedProjectIdx].tasks[payload.status].push(payload)
     },
     UPDATE_TASK(state, payload) {
         state.items[state.selectedProjectIdx].tasks[state.selectedTaskIdx] = payload

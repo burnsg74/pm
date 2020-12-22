@@ -54,7 +54,7 @@ export default {
     methods: {
         save: function () {
             this.$store.dispatch('saveNewTask',this.newTask)
-            this.$store.dispatch('setShowTaskNew',false)
+            this.$store.dispatch('setView', 'board')
         },
         cancel: function () {
             this.$store.dispatch('setView', 'board')

@@ -23,7 +23,9 @@ class ClientsSync extends Command
     {
         $this->line('Scan Started');
 
-        $baseFolder = '/Users/greg/notes/clients';
+
+
+        $baseFolder = env('NOTES_FOLDER', '/Users/greg/notes') . '/clients';
         $project    = null;
         $task       = null;
         $parsedown  = new Parsedown();
