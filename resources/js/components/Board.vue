@@ -1,7 +1,7 @@
 <template>
     <div class="row">
         <div v-for="(status, index) in project.statuses" :key="index" class="col active-tab">
-            <h3>{{ status }} <span slot="badge" v-if="tasks[status]"> {{ tasks[status].length }} </span></h3>
+            <h3 class="text-no-wrap">{{ status }} <span slot="badge" v-if="tasks[status]"> {{ tasks[status].length }} </span></h3>
             <draggable v-if="tasks[status]" v-model="tasks[status]" :options="{group:{pull:true,put:true},animation: 150}"class="list-group" group="tasks" @change="changeTaskLocation(status,$event)">
                 <div
                     v-for="(task, index) in tasks[status]"
