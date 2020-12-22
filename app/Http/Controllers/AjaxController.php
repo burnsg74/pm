@@ -10,6 +10,7 @@ use App\Models\Task;
 use App\Models\WorkLog;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Parsedown;
 
 class AjaxController extends Controller
@@ -150,6 +151,13 @@ class AjaxController extends Controller
             $dbRecord         = Task::find($task['id']);
             $dbRecord->status = $status;
             $dbRecord->order  = $order;
+
+            if ($status === 'Done') {
+                $dbRecord->completed_at = date('Y-m-d H:i:s');
+            } else {
+                $dbRecord->completed_at = NULL;
+            }
+
             $dbRecord->save();
 
             $meta    = "<meta name='name' content='{$dbRecord->name}'>" . PHP_EOL;
@@ -186,6 +194,13 @@ class AjaxController extends Controller
             foreach ($projects[$key]->statuses as $status) {
                 $tasks[$status] = Task::where('status', $status)
                                       ->where('project_id', $project->id)
+                                      ->where('completed_at')
+                                      ->where(
+                                          function ($query) {
+                                              $query->whereNull('completed_at')
+                                                    ->orWhereDate('completed_at', '>', Carbon::now()->subDays(14));
+                                          }
+                                      )
                                       ->orderBy('order')
                                       ->orderBy('updated_at')
                                       ->get();

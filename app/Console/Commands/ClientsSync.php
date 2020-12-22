@@ -60,6 +60,19 @@ class ClientsSync extends Command
             if ((!empty($tags['name'])) && $project->name !== $tags['name']) {
                 $project->name = $tags['name'];
             }
+
+            if ((!empty($tags['order'])) && $project->order !== $tags['order']) {
+                $project->order = $tags['order'];
+            }
+
+            if ((!empty($tags['started_at'])) && $project->started_at !== $tags['started_at']) {
+                $project->started_at = $tags['started_at'];
+            }
+
+            if ((!empty($tags['statuses'])) && $project->statuses !== $tags['statuses']) {
+                $project->statuses = $tags['statuses'];
+            }
+
             $project->save();
 
             $tasksFoler = $project->folder . '/tasks';
