@@ -11,6 +11,7 @@ use App\Models\WorkLog;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Parsedown;
 
 class AjaxController extends Controller
@@ -20,6 +21,7 @@ class AjaxController extends Controller
         try {
             $function = strtolower($request->method()) . ucwords($item);
             $payload  = $this->$function($request, $id);
+            Log::debug("Function: {$function}");
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -142,10 +144,9 @@ class AjaxController extends Controller
 
     private function putTaskorder(Request $request)
     {
-
         $status = $request->get('status');
-        $tasks = $request->get('tasks');
-        $order = 1;
+        $tasks  = $request->get('tasks');
+        $order  = 1;
 
         foreach ($tasks as $task) {
             $dbRecord         = Task::find($task['id']);
@@ -155,7 +156,7 @@ class AjaxController extends Controller
             if ($status === 'Done') {
                 $dbRecord->completed_at = date('Y-m-d H:i:s');
             } else {
-                $dbRecord->completed_at = NULL;
+                $dbRecord->completed_at = null;
             }
 
             $dbRecord->save();
@@ -441,4 +442,35 @@ class AjaxController extends Controller
         file_put_contents($request->input('path'), $request->input('markdown'));
         return $this->getClients($request);
     }
+
+    private function postOpenClientNotes(Request $request)
+    {
+        $id            = $request->get('id');
+        $project       = Project::find($id);
+        $notesFullPath = $project->folder . '/client-notes.md';
+        exec("vimr {$notesFullPath}");
+
+        return true;
+    }
+
+    private function postOpenProjectNotes(Request $request)
+    {
+        $id            = $request->get('id');
+        $project       = Project::find($id);
+        $notesFullPath = $project->folder . '/project-notes.md';
+        exec("vimr {$notesFullPath}");
+
+        return true;
+    }
+
+    private function postOpenTask(Request $request)
+    {
+        $id            = $request->get('id');
+        $task       = Task::find($id);
+        exec("vimr {$task->folder}");
+
+        return true;
+    }
+
+
 }

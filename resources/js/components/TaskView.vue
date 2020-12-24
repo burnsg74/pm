@@ -1,21 +1,22 @@
 <template>
     <div class="pa-3">
-        <v-btn
-            x-small
-            outlined
-            color="primary"
-            depressed
-            v-on:click="toggleEditingTask"
-        >Edit</v-btn>
+        <v-toolbar dense>
+            <v-btn icon v-on:click="toggleEditingTask">
+                <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn icon v-on:click="openInApp">
+                <v-icon>mdi-open-in-app</v-icon>
+            </v-btn>
+        </v-toolbar>
         <v-row v-if="!isEditingTask && task !== undefined " class="view-app-bar">
             <v-col class="pa-3 lighten-1">
                 <v-icon class="float-left" @click="prev">mdi-chevron-left-box-outline</v-icon>
                 <v-icon class="float-left" @click="next">mdi-chevron-right-box-outline</v-icon>
-                <span class="ml-3">{{project.code}}-{{ task.code }} :: {{ task.name }}</span>
+                <span class="ml-3">{{ project.code }}-{{ task.code }} :: {{ task.name }}</span>
             </v-col>
-            <v-col>{{task.status}}</v-col>
+            <v-col>{{ task.status }}</v-col>
             <v-col>
-                {{task.status}}
+                {{ task.status }}
                 <v-icon class="float-right" @click="close">mdi-close-box</v-icon>
             </v-col>
         </v-row>
@@ -24,7 +25,7 @@
             <v-col v-if="!isEditingTask && task !== undefined " cols="12">
                 <h4>Details</h4>
                 <v-card class="pa-3">
-                <div class="html-viewer" style="color: white" v-html="task.note_html"></div>
+                    <div class="html-viewer" style="color: white" v-html="task.note_html"></div>
                 </v-card>
             </v-col>
             <v-col v-if="!isEditingTask && task !== undefined " cols="12">
@@ -36,19 +37,19 @@
             <v-col v-if="!isEditingTask && task !== undefined " cols="12">
                 <h4>Comments</h4>
                 <v-card class="pa-3">
-                    <div class="html-viewer" style="color: white" ></div>
+                    <div class="html-viewer" style="color: white"></div>
                 </v-card>
             </v-col>
             <v-col v-if="!isEditingTask && task !== undefined " cols="12">
                 <h4>Worklogs</h4>
                 <v-card class="pa-3">
-                    <div class="html-viewer" style="color: white" ></div>
+                    <div class="html-viewer" style="color: white"></div>
                 </v-card>
             </v-col>
             <v-col v-if="!isEditingTask && task !== undefined " cols="12">
                 <h4>History</h4>
                 <v-card class="pa-3">
-                    <div class="html-viewer" style="color: white" ></div>
+                    <div class="html-viewer" style="color: white"></div>
                 </v-card>
             </v-col>
 
@@ -56,7 +57,8 @@
             <v-col v-if="isEditingTask" cols="12">
                 <v-row fluid>
                     <v-col md="4">
-                        <v-text-field v-model="editingTask.code" :prefix="project.code + '-'" label="Ticket Number"></v-text-field>
+                        <v-text-field v-model="editingTask.code" :prefix="project.code + '-'"
+                                      label="Ticket Number"></v-text-field>
                     </v-col>
                     <v-col md="4">
                         <v-text-field v-model="editingTask.name" label="Name"></v-text-field>
@@ -85,7 +87,8 @@
                             color="primary"
                             depressed
                             v-on:click="toggleEditingTask"
-                        >Save</v-btn>
+                        >Save
+                        </v-btn>
                     </v-col>
                 </v-row>
             </v-col>
@@ -96,8 +99,7 @@
 <script>
 export default {
     name: "TaskView",
-    components: {
-    },
+    components: {},
     data: () => ({
         isEditingTask: false,
         editingTask: {
@@ -129,7 +131,7 @@ export default {
                 this.editingTask = JSON.parse(JSON.stringify(this.task));
             } else {
                 console.log('Save')
-                this.$store.dispatch('updateTask', this.editingTask )
+                this.$store.dispatch('updateTask', this.editingTask)
             }
         },
         viewTask: function (idx) {
@@ -137,7 +139,7 @@ export default {
             this.$store.dispatch('setView', 'task-view')
         },
         prev: function () {
-            document.title='Test'
+            document.title = 'Test'
             this.$store.dispatch('prevTask')
         },
         next: function () {
@@ -145,6 +147,9 @@ export default {
         },
         close: function () {
             this.$store.dispatch('setView', 'board')
+        },
+        openInApp: function () {
+            this.$store.dispatch('openTaskInApp')
         }
     }
 }

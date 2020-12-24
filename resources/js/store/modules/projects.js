@@ -51,6 +51,18 @@ const actions = {
             commit('SET_CLIENT_NOTES', {html, markdown})
         })
     },
+    openClientNotesInApp({commit, state}) {
+        let project = state.items[state.selectedProjectIdx]
+        api.openClientNotes(project.id)
+    },
+    openProjectNotesInApp({commit, state}) {
+        let project = state.items[state.selectedProjectIdx]
+        api.openProjectNotes(project.id)
+    },
+    openTaskInApp({commit, state}) {
+        let task = state.items[state.selectedProjectIdx].tasks[state.selectedTaskStatus][state.selectedTaskIdx]
+        api.openTask(task.id)
+    },
     saveNewTask({commit, state}, newTask) {
         console.log('SNT', newTask)
         let project = state.items[state.selectedProjectIdx]

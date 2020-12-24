@@ -48,4 +48,13 @@ export default {
         console.log(payload)
         return axios.delete('/ajax/task/' + payload.id, payload);
     },
+    openClientNotes(payload) {
+        return axios.post('/ajax/openClientNotes', {id:payload});
+    },
+    openProjectNotes(payload) {
+        return axios.post('/ajax/openProjectNotes', {id:payload});
+    },
+    openTask(payload) {
+        return axios.post('/ajax/openTask', {id:payload});
+    }
 }
