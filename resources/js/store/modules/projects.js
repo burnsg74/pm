@@ -29,8 +29,6 @@ const actions = {
         commit('SET_PROJECT_IDX', idx)
     },
     selectTask({commit, state}, payload){
-        console.log(payload)
-
         commit('SET_SELECTED_TASK_STATUS', payload.status)
         commit('SET_SELECTED_TASK_IDX', payload.idx)
     },
@@ -78,6 +76,31 @@ const actions = {
             commit('UPDATE_TASK', task)
         })
     },
+    updateTaskStatus({commit, state}, status) {
+        console.log('SNT status', status)
+        // commit('SET_TASK_IDX', idx)
+        //         commit('SET_SELECTED_TASK_STATUS', payload.status)
+        //         commit('SET_SELECTED_TASK_IDX', payload.idx)
+        // commit('ADD_TASK', task)
+
+        let task = Object.assign({}, state.items[state.selectedProjectIdx].tasks[state.selectedTaskStatus][state.selectedTaskIdx])
+        task.status = status
+        api.updateTask(task).then(function (response) {
+            let task = response.data.payload
+            let oldTaskStatus = state.selectedTaskStatus
+            let oldTaskIdx = state.selectedTaskIdx
+            commit('ADD_TASK', task)
+            commit('REMOVE_TASK', {idx:oldTaskIdx,status:oldTaskStatus})
+        })
+    },
+    updateTaskName({commit, state}, payload) {
+        let task = Object.assign({}, state.items[state.selectedProjectIdx].tasks[state.selectedTaskStatus][state.selectedTaskIdx])
+        task.name = payload
+        api.updateTask(task).then(function (response) {
+            let task = response.data.payload
+            commit('UPDATE_TASK', task)
+        })
+    },
     changeTaskLocationReorderTask({commit, state}, payload) {
         console.log('changeTaskLocation', payload)
         const action = Object.keys(payload.event)[0]
@@ -86,7 +109,6 @@ const actions = {
         let task = ''
         let oldIndex = ''
         let newIndex = ''
-
         switch (action) {
             case 'moved':
                 console.log('Move me')
@@ -113,6 +135,14 @@ const actions = {
     },
     prevTask({commit}) {
         commit('DECREMENT_TASK')
+    },
+    addWorkLog({commit, state}, worklogDur){
+        console.log('Add Worklog',worklogDur)
+        let taskId = state.items[state.selectedProjectIdx].tasks[state.selectedTaskStatus][state.selectedTaskIdx].id
+        api.addWorkLog( {worklogDur,taskId}).then(function (response) {
+            let worklog = response.data.payload
+            commit('ADD_WORKLOG', worklog)
+        })
     }
 
 }
@@ -122,9 +152,16 @@ const mutations = {
     },
     ADD_TASK(state, payload) {
         state.items[state.selectedProjectIdx].tasks[payload.status].push(payload)
+        state.selectedTaskIdx = state.items[state.selectedProjectIdx].tasks[payload.status].length - 1
+        state.selectedTaskStatus = payload.status
+    },
+    REMOVE_TASK(state, payload) {
+        console.log('Remove Task',payload)
+        state.items[state.selectedProjectIdx].tasks[payload.status].splice(payload.idx,1)
     },
     UPDATE_TASK(state, payload) {
-        state.items[state.selectedProjectIdx].tasks[state.selectedTaskIdx] = payload
+        console.log('Update Task',payload,state.selectedTaskIdx)
+        state.items[state.selectedProjectIdx].tasks[payload.status][state.selectedTaskIdx] = payload
     },
     SET_PROJECT_IDX(state, payload) {
         state.selectedProjectIdx = payload
@@ -190,6 +227,9 @@ const mutations = {
 
         api.updateTaskOrder({status,tasks})
     },
+    ADD_WORKLOG(state, payload) {
+        state.items[state.selectedProjectIdx].worklog.push(payload)
+    }
 }
 
 export default {

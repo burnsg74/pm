@@ -56,5 +56,10 @@ export default {
     },
     openTask(payload) {
         return axios.post('/ajax/openTask', {id:payload});
+    },
+    addWorkLog(payload) {
+        let worklogDur = payload.worklogDur;
+        let taskId = payload.taskId;
+        return axios.post('/ajax/worklog', {taskId, worklogDur});
     }
 }

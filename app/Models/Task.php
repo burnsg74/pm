@@ -10,7 +10,7 @@ class Task extends Model
 
     public function worklogs()
     {
-        return $this->hasMany('App\Models\WorkLog');
+        return $this->hasMany('App\Models\TaskWorkLog');
     }
 
     public function history()

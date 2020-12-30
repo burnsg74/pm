@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\WorkLog;
+use App\Models\TaskWorkLog;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Parsedown;
@@ -23,15 +23,13 @@ class ClientsSync extends Command
     {
         $this->line('Scan Started');
 
-
-
         $baseFolder = env('NOTES_FOLDER', '/Users/greg/notes') . '/clients';
         $project    = null;
         $task       = null;
         $parsedown  = new Parsedown();
 
         DB::statement("SET foreign_key_checks=0");
-        WorkLog::truncate();
+        TaskWorkLog::truncate();
         DB::statement("SET foreign_key_checks=1");
 
         foreach (scandir($baseFolder) as $file) {
@@ -141,11 +139,11 @@ class ClientsSync extends Command
                 $task->save();
 
                 foreach ($worklogs as $worklog) {
-                    $workLog           = new WorkLog();
+                    $workLog           = new TaskWorkLog();
                     $workLog->task_id  = $task->id;
                     $workLog->name     = "Worked on task {$task->code}";
-                    $workLog->start_at = $worklog['start'];
-                    $workLog->end_at   = $worklog['end'];
+                    $workLog->start_at = $worklog['start_at'];
+                    $workLog->end_at   = $worklog['end_at'];
                     $workLog->duration = $worklog['duration'];
                     $workLog->save();
                 }
