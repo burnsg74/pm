@@ -141,7 +141,6 @@ class ClientsSync extends Command
                 foreach ($worklogs as $worklog) {
                     $workLog           = new TaskWorkLog();
                     $workLog->task_id  = $task->id;
-                    $workLog->name     = "Worked on task {$task->code}";
                     $workLog->start_at = $worklog['start_at'];
                     $workLog->end_at   = $worklog['end_at'];
                     $workLog->duration = $worklog['duration'];
