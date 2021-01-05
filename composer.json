@@ -24,7 +24,7 @@
         "symfony/process": "^5.0",
         "zibios/wrike-php-guzzle": "^1.0",
         "zibios/wrike-php-library": "^1.0",
-        "zibios/wrike-php-sdk": "^2.0"
+        "zibios/wrike-php-sdk": "^1.0"
     },
     "require-dev": {
         "facade/ignition": "^2.5",

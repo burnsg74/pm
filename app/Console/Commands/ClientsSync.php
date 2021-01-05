@@ -28,14 +28,18 @@ class ClientsSync extends Command
         $task       = null;
         $parsedown  = new Parsedown();
 
+        $this->warn('Wipe Task Work Log');
         DB::statement("SET foreign_key_checks=0");
         TaskWorkLog::truncate();
         DB::statement("SET foreign_key_checks=1");
 
+        $this->line('Scaning Folder: '. $baseFolder );
         foreach (scandir($baseFolder) as $file) {
             if ($file === '.' || $file === '..' || substr($file, 0, 1) === '.' || is_file("$baseFolder/$file")) {
                 continue;
             }
+
+            $this->line($file);
 
             $projectCode     = strtoupper($file);
             $project         = Project::firstOrCreate(['code' => $projectCode]);
@@ -43,6 +47,7 @@ class ClientsSync extends Command
 
             $clientNotesMarkdown = '';
             if (is_file($project->folder . '/client-notes.md')) {
+                $this->info('Client Notes Found.');
                 $clientNotesMarkdown = file_get_contents($project->folder . '/client-notes.md');
             }
             $project->client_notes_markdown = $this->removeMetas($clientNotesMarkdown);
@@ -51,6 +56,7 @@ class ClientsSync extends Command
             $projectNotesMarkdown = '';
             $tags                 = [];
             if (is_file($project->folder . '/project-notes.md')) {
+                $this->info('Project Notes Found.');
                 $projectNotesMarkdown = file_get_contents($project->folder . '/project-notes.md');
                 $tags                 = get_meta_tags($project->folder . '/project-notes.md');
             }
@@ -83,6 +89,9 @@ class ClientsSync extends Command
                 if ($file === '.' || $file === '..' || substr($file, 0, 1) === '.') {
                     continue;
                 }
+
+                $this->line("\tTask:\t".$file);
+
                 $ticketFullPath = $tasksFoler . '/' . $file;
                 $ticketMarkdown = file_get_contents($ticketFullPath);
                 $tags           = get_meta_tags($ticketFullPath);
