@@ -253,6 +253,9 @@ export default {
             }
         },
         tickWorkLog: function () {
+            if (this.worklogDur % 60 === 0 ) {
+                console.log('Save')
+            }
             this.worklogDur++;
             this.worklogDurFormated = new Date(this.worklogDur * 1000).toISOString().substr(11, 8)
         }

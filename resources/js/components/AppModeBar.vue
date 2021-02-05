@@ -3,59 +3,25 @@
         app
         clipped-left
         dark
-        dense
     >
-        <v-menu offset-y>
-            <template v-slot:activator="{ on, attrs }">
-                <v-icon v-bind="attrs"
-                        v-on="on">mdi-account-multiple
-                </v-icon>
-            </template>
-            <v-list class="client-dropdown" dark dense>
-                <draggable v-model="projects.items" group="projects">
-                    <v-list-item
-                        v-for="(project, index) in projects.items"
-                        :key="index"
-                    >
-                        <v-list-item-title>
-                            <a v-on:click="setProject(index)">{{ project.name }}</a>
-                        </v-list-item-title>
-                    </v-list-item>
-                </draggable>
-            </v-list>
-        </v-menu>
-        <span v-if="project" class="project">
-                {{ project.name }}
-            <a v-on:click="toggleClientNotes()">
-                <v-icon>mdi-account</v-icon>
-            </a>
-            <a v-on:click="toggleProjectNotes()">
-                <v-icon>mdi-folder</v-icon>
-            </a>
-            <a v-if="view !== 'task-new'" v-on:click="setView('task-new')">
-                <v-icon style="background: green">mdi-plus-box-outline</v-icon>
-            </a>
-            <a v-if="view !== 'board'" v-on:click="showBoard()">
-                <v-icon>mdi-bulletin-board</v-icon>
-            </a>
-        </span>
-        <v-spacer></v-spacer>
-        <a v-if="view !== 'report'" v-on:click="showReport()">
-            <v-icon>mdi-bulletin-board</v-icon>
-        </a>
-        <v-icon @click="refresh">refresh</v-icon>
-        <clock></clock>
+        <v-btn-toggle
+            v-model="page"
+            class="mt-3"
+            dark
+            dense
+        >
+            <v-btn outlined small>Calendar</v-btn>
+            <v-btn outlined small>Board</v-btn>
+
+        </v-btn-toggle>
     </v-system-bar>
 </template>
 
 <script>
-import Clock from "./Clock";
 import {mapState} from 'vuex';
-import draggable from 'vuedraggable'
 
 export default {
-    name: "AppBar",
-    components: {Clock, draggable},
+    name: "AppModeBar",
     data() {
         return {
             currentMode: 'working',
@@ -71,6 +37,15 @@ export default {
         },
         view: function () {
             return this.$store.getters.getView()
+        },
+        mode: {
+            get() {
+                return this.$store.getters.getMode()
+            },
+            set(payload) {
+                this.$store.dispatch('setMode', payload)
+            }
+
         },
     },
     props: {
@@ -117,9 +92,6 @@ export default {
         },
         showBoard: function () {
             this.$store.dispatch('setView', 'board')
-        },
-        showReport: function () {
-            this.$store.dispatch('setView', 'report')
         }
     }
 }

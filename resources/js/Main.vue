@@ -9,6 +9,7 @@
                 <task-new v-if="view==='task-new'" ></task-new>
                 <board v-if="view==='board'"></board>
                 <task-view v-if="view==='task-view'"></task-view>
+                <report v-if="view==='report'"></report>
             </v-container>
         </v-main>
     </v-app>
@@ -23,6 +24,7 @@ import TaskNew from "./components/TaskNew";
 import Board from './components/Board';
 import TaskView from "./components/TaskView";
 import Calendar from "./components/Calendar";
+import Report from './components/Report';
 
 export default {
     name: 'Main',
@@ -33,7 +35,8 @@ export default {
         ProjectNotes,
         TaskNew,
         Calendar,
-        Board
+        Board,
+        Report
     },
     data: () => ({}),
     computed: {

@@ -9,7 +9,6 @@
     "license": "MIT",
     "require": {
         "ext-json": "*",
-        "asana/asana": "^0.10.1",
         "beyondcode/laravel-websockets": "^1.9",
         "erusev/parsedown": "^1.7",
         "fideloper/proxy": "^4.4",
@@ -21,10 +20,7 @@
         "psy/psysh": "^0.10.4",
         "pusher/pusher-php-server": "~3.3",
         "symfony/panther": "^0.8.0",
-        "symfony/process": "^5.0",
-        "zibios/wrike-php-guzzle": "^1.0",
-        "zibios/wrike-php-library": "^1.0",
-        "zibios/wrike-php-sdk": "^1.0"
+        "symfony/process": "^5.0"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
