@@ -9,7 +9,7 @@ use JiraRestApi\Issue\IssueService;
 use JiraRestApi\JiraException;
 use Parsedown;
 
-class SynJira extends Command
+class SyncJira extends Command
 {
     protected $signature = 'sync:jira';
 
@@ -17,48 +17,40 @@ class SynJira extends Command
 
     public function handle()
     {
-        //
         try {
+
+            $parsedown = new Parsedown();
             $issueService = new IssueService();
+
             // updated >= -60m AND assignee in (currentUser()) AND project = DMPV3KB ORDER BY Rank ASC
             $q = 'assignee in (currentUser()) AND project = DMPV3KB ORDER BY Rank ASC';
+            $startAt = 0;
+            $ret = $issueService->search($q,$startAt,15);
+            while(count($ret->issues) > 0){
+                if ($startAt === 0) {
+                    $totalCount = $ret->total;
+                    $this->line("Total : {$totalCount}");
 
-            $queryParam = [
-                'fields' => [  // default: '*all'
-                               'summary',
-                               'comment',
-                ],
-                'expand' => [
-                    'renderedFields',
-                    'names',
-                    'schema',
-                    'transitions',
-                    'operations',
-                    'editmeta',
-                    'changelog',
-                ]
-            ];
+                    $bar = $this->output->createProgressBar($totalCount);
+                    $bar->start();
+                }
+                $startAt +=15;
 
-            $ret = $issueService->search($q);
-
-            $totalCount = $ret->total;
-            $this->line("Total : {$totalCount}");
-
-            $project   = Project::find(5);
-            $parsedown = new Parsedown();
+            $project   = Project::where('code','DMPV3KB')->first();
             // do something with fetched data
             foreach ($ret->issues as $issue) {
+                $bar->advance();
                 //dump($issue);
 
-                $this->line('KEY: ' . $issue->key);
-                $this->line('Created: ' . $issue->fields->created->format('Y-m-d H:i:s'));
-                $this->line('Updated: ' . $issue->fields->updated->format('Y-m-d H:i:s'));
-                $this->line('Summary: ' . $issue->fields->summary);
-                $this->line('Description: ' . $issue->fields->description);
-                $this->line('');
-                $this->line('Creator: ' . $issue->fields->creator->displayName);
-                $this->line('Status: ' .$issue->fields->status->name);
-                $this->line('Priority: ' .$issue->fields->priority->name);
+//                $this->line('KEY: ' . $issue->key);
+//                $this->line('Created: ' . $issue->fields->created->format('Y-m-d H:i:s'));
+//                $this->line('Updated: ' . $issue->fields->updated->format('Y-m-d H:i:s'));
+//                $this->line('Summary: ' . $issue->fields->summary);
+//                $this->line('Description: ' . $issue->fields->description);
+//                $this->line('');
+//                $this->line('Creator: ' . $issue->fields->creator->displayName);
+//                $this->line('Status: ' .$issue->fields->status->name);
+//                $this->line('Priority: ' .$issue->fields->priority->name);
 
                 $taskRec                = Task::where('code',$issue->key)->first();
                 if (! $taskRec) {
@@ -78,7 +70,7 @@ class SynJira extends Command
 
                 file_put_contents($fullPath, $content);
 
-                $taskRec->project_id    = 5;
+                $taskRec->project_id    = $project->id;
                 $taskRec->code          = strtoupper($issue->key);
                 $taskRec->name          = $issue->fields->summary;
                 $taskRec->status        = $issue->fields->status->name;
@@ -87,8 +79,12 @@ class SynJira extends Command
                 $taskRec->note_html     = $parsedown->text($taskRec->note_markdown);
                 $taskRec->save();
             }
+                $ret = $issueService->search($q,$startAt,15);
+            }
+            $bar->finish();
+            $this->line("Total : {$totalCount}");
         } catch (JiraException $e) {
-            print("Error Occured! " . $e->getMessage());
+            print("Error Occurred! " . $e->getMessage());
         }
     }
 }

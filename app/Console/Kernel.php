@@ -2,10 +2,11 @@
 
 namespace App\Console;
 
-use App\Console\Commands\ClientsSync;
+use App\Console\Commands\SyncClients;
 use App\Console\Commands\SnSync;
 use App\Console\Commands\SyncCfm;
-use App\Console\Commands\SynJira;
+use App\Console\Commands\SyncJira;
+use App\Console\Commands\SyncNotes;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -17,9 +18,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
-        ClientsSync::class,
-        SynJira::class
+        SyncClients::class,
+        SyncJira::class,
+        SyncNotes::class
     ];
 
     /**

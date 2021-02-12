@@ -32,6 +32,9 @@
             <a v-on:click="toggleProjectNotes()">
                 <v-icon>mdi-folder</v-icon>
             </a>
+            <a v-on:click="toggleNotes()">
+                <v-icon>mdi-file-document-multiple-outline</v-icon>
+            </a>
             <a v-if="view !== 'task-new'" v-on:click="setView('task-new')">
                 <v-icon style="background: green">mdi-plus-box-outline</v-icon>
             </a>
@@ -99,6 +102,9 @@ export default {
         },
         toggleProjectNotes: function () {
             this.$store.dispatch('toggleProjectNotes')
+        },
+        toggleNotes: function () {
+            this.$store.dispatch('toggleNotes')
         },
         toggleTaskNew: function () {
             this.$store.dispatch('toggleTaskNew')

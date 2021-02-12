@@ -1,8 +1,10 @@
 const getDefaultState = () => {
     return {
+        prevView: 'board',
         view: 'board',
         showClientNotes: false,
         showProjectNotes: false,
+        showNotes: false,
         showTaskNew: false,
     }
 }
@@ -33,6 +35,9 @@ const actions = {
     toggleProjectNotes({commit}) {
         commit('TOGGLE_PROJECT_NOTES')
     },
+    toggleNotes({commit}) {
+        commit('TOGGLE_NOTES')
+    },
     toggleTaskNew({commit}) {
         commit('TOGGLE_TASK_NEW')
     },
@@ -50,6 +55,19 @@ const mutations = {
     },
     TOGGLE_PROJECT_NOTES(state) {
         state.showProjectNotes = !state.showProjectNotes
+    },
+    TOGGLE_NOTES(state) {
+        state.showNotes = !state.showNotes
+
+        if (state.showNotes) {
+            state.prevView = state.view
+            state.view = 'notes'
+            state.showClientNotes = false
+            state.showProjectNotes = false
+        } else {
+            state.view = state.prevView
+        }
+
     },
     TOGGLE_TASK_NEW(state) {
         state.showTaskNew = !state.showTaskNew

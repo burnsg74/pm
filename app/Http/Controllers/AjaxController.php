@@ -193,8 +193,8 @@ class AjaxController extends Controller
         foreach ($projects as $key => $project) {
             $projects[$key]->statuses = json_decode($project->statuses);
             foreach ($projects[$key]->statuses as $status) {
-                $tasks[$status] = Task::with(['worklogs','history'])
-                             ->where('status', $status)
+                $tasks[$status] = Task::with(['worklogs', 'history'])
+                                      ->where('status', $status)
                                       ->where('project_id', $project->id)
                                       ->where('completed_at')
                                       ->where(
@@ -219,16 +219,44 @@ class AjaxController extends Controller
 
         $task = Task::find($taskId);
 
-        $worklog = new TaskWorkLog();
-        $worklog->task_id = $task->id;
+        $worklog           = new TaskWorkLog();
+        $worklog->task_id  = $task->id;
         $worklog->start_at = Carbon::now()->subSeconds($worklogDur);
-        $worklog->end_at = Carbon::now();
+        $worklog->end_at   = Carbon::now();
         $worklog->duration = $worklogDur;
         $worklog->save();
 
         $this->writeTaskToFile($task);
 
         return $worklog;
+    }
+
+    private function writeTaskToFile($task): void
+    {
+        $meta     = "<meta name='name' content='{$task['name']}'>" . PHP_EOL;
+        $meta     .= "<meta name='code' content='{$task['code']}'>" . PHP_EOL;
+        $meta     .= "<meta name='status' content='{$task['status']}'>" . PHP_EOL;
+        $fullPath = $task->folder;
+        $content  = $meta . PHP_EOL . $task->note_markdown;
+
+        if (!empty($task->scratchpad_markdown)) {
+            $content .= PHP_EOL . PHP_EOL . '## SCRATCHPAD' . PHP_EOL . $task->scratchpad_markdown;
+        }
+
+        $worklogRecs = TaskWorkLog::where('task_id', $task->id)->get();
+        if ($worklogRecs) {
+            $content .= PHP_EOL . PHP_EOL . '## WORKLOG' . PHP_EOL;
+            foreach ($worklogRecs as $worklogRec) {
+                $data    = [
+                    'start_at' => $worklogRec->start_at,
+                    'end_at'   => $worklogRec->end_at,
+                    'duration' => $worklogRec->duration,
+                ];
+                $content .= json_encode($data) . PHP_EOL;
+            }
+        }
+
+        file_put_contents($fullPath, $content);
     }
 
     private function putProjectnotes(Request $request)
@@ -331,16 +359,59 @@ class AjaxController extends Controller
 
     private function getNotes(Request $request)
     {
-        return Note::all();
-        /*foreach ($notes as $note) {
-            Log::debug($note->full_path);
-            $contents = file_get_contents($note->full_path);
-            $parsedown = new Parsedown();
-            $note->path = $note->full_path;
-            $note->note_markdown = $contents;
-            $note->note_html = $parsedown->text($contents);
+        $noteRecords = Note::all();
+
+        $out = [];
+        $res = [];
+        foreach ($noteRecords->groupBy('dirname') as $folder => $noteRecord) {
+            $parts = explode('/', $folder);
+            array_shift($parts);
+            $res = $this->addNoteChildren($parts, $noteRecord);
+            $out = array_merge_recursive($out, $res);
         }
-        return $notes;*/
+
+        $out = $this->arrayToTree($out);
+        return $out;
+    }
+
+    private function addNoteChildren($parts, $noteRecord)
+    {
+        if (count($parts)) {
+            $part        = array_shift($parts);
+            $label       = (empty($part)) ? 'Home' : $part;
+            $res[$label] = $this->addNoteChildren($parts, $noteRecord);
+        } else {
+            $files = [];
+            foreach ($noteRecord as $file) {
+                $files[] = [
+                    'id'       => $file->id,
+                    'name'     => $file->filename,
+                    'file'     => $file->extension,
+                    'tags'     => $file->tags,
+                    'markdown' => $file->markdown,
+                    'html'     => $file->html,
+                ];
+            }
+            return $files;
+        }
+
+        return $res;
+    }
+
+    private function arrayToTree($array)
+    {
+        foreach ($array as $key => $item) {
+            if (is_numeric($key)) {
+                $children[] = $item;
+                continue;
+            } else {
+                $children[] = [
+                    'name'     => $key,
+                    'children' => $this->arrayToTree($item)
+                ];
+            }
+        }
+        return $children;
     }
 
     private function getEvents(Request $request)
@@ -381,34 +452,6 @@ class AjaxController extends Controller
         exec("vimr {$task->folder}");
 
         return true;
-    }
-
-    private function writeTaskToFile($task): void
-    {
-        $meta     = "<meta name='name' content='{$task['name']}'>" . PHP_EOL;
-        $meta     .= "<meta name='code' content='{$task['code']}'>" . PHP_EOL;
-        $meta     .= "<meta name='status' content='{$task['status']}'>" . PHP_EOL;
-        $fullPath = $task->folder;
-        $content  = $meta . PHP_EOL . $task->note_markdown;
-
-        if (!empty($task->scratchpad_markdown)) {
-            $content .= PHP_EOL . PHP_EOL . '## SCRATCHPAD' . PHP_EOL . $task->scratchpad_markdown;
-        }
-
-        $worklogRecs = TaskWorkLog::where('task_id', $task->id)->get();
-        if ($worklogRecs) {
-            $content .= PHP_EOL . PHP_EOL . '## WORKLOG' . PHP_EOL;
-            foreach ($worklogRecs as $worklogRec) {
-                $data    = [
-                    'start_at' => $worklogRec->start_at,
-                    'end_at'   => $worklogRec->end_at,
-                    'duration'   => $worklogRec->duration,
-                ];
-                $content .= json_encode($data) . PHP_EOL;
-            }
-        }
-
-        file_put_contents($fullPath, $content);
     }
 
 

@@ -9,9 +9,9 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Parsedown;
 
-class ClientsSync extends Command
+class SyncClients extends Command
 {
-    protected $signature = 'clients:sync';
+    protected $signature = 'sync:clients';
     protected $description = 'Sync Clients';
 
     public function __construct()
@@ -33,7 +33,7 @@ class ClientsSync extends Command
         TaskWorkLog::truncate();
         DB::statement("SET foreign_key_checks=1");
 
-        $this->line('Scaning Folder: '. $baseFolder );
+        $this->line('Scanning Folder: '. $baseFolder );
         foreach (scandir($baseFolder) as $file) {
             if ($file === '.' || $file === '..' || substr($file, 0, 1) === '.' || is_file("$baseFolder/$file")) {
                 continue;
