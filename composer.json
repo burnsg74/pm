@@ -19,7 +19,7 @@
         "lesstif/php-jira-rest-client": "^2.5",
         "predis/predis": "^1.1",
         "psy/psysh": "^0.10.4",
-        "pusher/pusher-php-server": "~3.3",
+        "pusher/pusher-php-server": "~3.0",
         "symfony/panther": "^0.8.0",
         "symfony/process": "^5.0"
     },
