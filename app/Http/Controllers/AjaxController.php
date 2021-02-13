@@ -8,6 +8,8 @@ use App\Models\Note;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskWorkLog;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -452,6 +454,41 @@ class AjaxController extends Controller
         exec("vimr {$task->folder}");
 
         return true;
+    }
+
+    private function getCurrentWeekHours(Request $request)
+    {
+        $now           = CarbonImmutable::now();
+        $weekStartDate = $now->startOfWeek(carbon::SUNDAY);
+        $weekEndDate   = $now->endOfWeek(carbon::SATURDAY);
+
+        $reportDate = $weekStartDate;
+        $res=[];
+        while ($reportDate <= $weekEndDate) {
+            $rec        = TaskWorkLog::whereDate('start_at', '=', $reportDate)
+                                     ->get();
+            $row = [];
+            if ($rec) {
+                $totals=[];
+                foreach ($rec as $item){
+                    $task = $item->task;
+                    $project = $task->project;
+                    if(empty($totals[$project->name]))
+                        $totals[$project->name] = 0;
+                    $totals[$project->name] += $item->duration;
+                    $row[$project->name][] = [
+                        'code'=>$task->code,
+                        'start'=>$item->start_at->format('h:i a'),
+                        'end'=>$item->end_at->format('h:i a'),
+                        'dur'=>$item->durationFormated,
+                        'total'=>CarbonInterval::seconds($totals[$project->name])->cascade()->forHumans()
+                        ];
+                }
+                $res[] = $row;
+            }
+            $reportDate = $reportDate->addDay();
+        }
+        return $res;
     }
 
 
