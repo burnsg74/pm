@@ -1,33 +1,21 @@
 {
   "name": "pm",
-  "private": true,
   "version": "0.0.1",
-  "type": "module",
+  "description": "Project Manager",
+  "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build"
-  },
-  "dependencies": {
-    "@fullcalendar/core": "^6.1.15",
-    "@fullcalendar/daygrid": "^6.1.15",
-    "@fullcalendar/interaction": "^6.1.15",
-    "@fullcalendar/list": "^6.1.15",
-    "@fullcalendar/react": "^6.1.15",
-    "@fullcalendar/timegrid": "^6.1.15",
-    "@tinymce/tinymce-react": "^5.1.1",
-    "bootstrap": "^5.3.3",
-    "react": "^18.3.1",
-    "react-bootstrap": "^2.10.5",
-    "react-dom": "^18.3.1",
-    "react-dropzone": "^14.2.3",
-    "react-redux": "^9.1.2",
-    "react-router-dom": "^6.26.2",
-    "redux": "^5.0.1",
-    "tinymce": "^7.3.0"
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"opener http://localhost:3000\"",
+    "server": "cd node-server && npm start",
+    "client": "cd react-app && npm run dev"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
-    "globals": "^15.9.0",
-    "vite": "^5.4.1"
+    "concurrently": "^9.0.1",
+    "opener": "^1.5.2",
+    "vite-tsconfig-paths": "^5.0.1"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.2.7",
+    "react-redux": "^9.1.2",
+    "redux": "^5.0.1"
   }
 }
