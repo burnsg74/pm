@@ -1,0 +1,10 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+main {
+    min-height: calc(100vh - 50px);
+    margin-top: 50px;
+    padding: 0 10px;
+}
+
+#calendar {min-height: calc(100vh - 60px);}
