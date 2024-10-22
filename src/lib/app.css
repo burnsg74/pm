@@ -8,3 +8,16 @@ main {
 }
 
 #calendar {min-height: calc(100vh - 60px);}
+
+
+.notes_container {
+    display: flex;
+}
+
+.notes_left-column {
+    width: 20%;
+}
+
+.notes_right-column {
+    width: 80%;
+}

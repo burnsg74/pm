@@ -41,10 +41,12 @@
             let eventData = data.map(event => ({
                 id: event.id,
                 title: event.title,
+                allDay: !!event.allDay,
                 start: event.start,
                 end: event.end,
                 backgroundColor: event.backgroundColor
             }));
+            console.log('eventData', eventData);
             eventData.forEach(event => {
                 calendar.addEvent(event);
             });
