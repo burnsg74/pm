@@ -1,0 +1,21 @@
+@charset "UTF-8";
+
+:root {
+    --background-color: #2d3748;
+    --link-color: #ffffff;
+    --link-hover-color: #e2e8f0;
+    --padding-left: 0.25rem;
+    --gap: 1rem;
+}
+
+main {
+    margin-top: 25px;
+}
+
+.highlight-green {
+    background-color: #84ff00;
+}
+
+.highlight-red {
+    background-color: #fd7676;
+}

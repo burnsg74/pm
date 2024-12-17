@@ -1,0 +1,27 @@
+{
+  "name": "pm-scraper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "scrap:indeed": "node scrap-indeed.js",
+    "run:all": "pnpm exec playwright test",
+    "run:chrome": "pnpm exec playwright test --project=chromium",
+    "run:head": "pnpm exec playwright test --project=chromium --headed",
+    "run:ui": "pnpm exec playwright test --ui --headed",
+    "run:codegen": "npx playwright codegen https://www.indeed.com"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.10.1"
+  },
+  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "sqlite3": "^5.1.7",
+    "turndown": "^7.2.0"
+  }
+}
