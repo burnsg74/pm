@@ -9,7 +9,9 @@
     "type-check": "tsc --noEmit",
     "start": "concurrently \"npm run start:frontend\" \"DEBUG=vite:* npm run start:backend\"",
     "start:frontend": "vite --open",
-    "start:backend": "cd ../pm-backend && NODE_ENV=development npm run dev"
+    "start:backend": "cd ../pm-backend && NODE_ENV=development npm run dev",
+    "scrap:indeed": "cd ../pm-scraper && npm run scrap:indeed",
+    "check:pakcages": "npx depcheck"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -19,14 +21,21 @@
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
     "@reduxjs/toolkit": "^2.0.1",
-    "easymde": "^2.18.0",
+    "@tinymce/tinymce-react": "^5.1.1",
+    "ag-charts-react": "^10.3.3",
+    "ag-grid-community": "^32.3.3",
+    "ag-grid-react": "^32.3.3",
+    "bootstrap": "^5.3.3",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.10.7",
     "react-dom": "^18.2.0",
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.28.0",
-    "react-simplemde-editor": "^5.2.0"
+    "tinymce": "^7.6.0"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.13",
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.2.1",

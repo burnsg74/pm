@@ -1,10 +1,13 @@
 import {useEffect} from "react";
 import {Route, Routes} from "react-router-dom";
 import Home from "./pages/Home/Home";
+import Tinymce from "./pages/Tinymce/Tinymce";
 import Jobs from "./pages/Jobs/Jobs";
 import Calendar from "./pages/Calendar/Calendar";
-import Editor from "./pages/Editor/Editor";
 import TopNav from "./components/TopNav/TopNav";
+import Footer from "./components/Footer/Footer";
+import Notes from "./pages/Notes/Notes";
+import TimeBoxing from "./pages/TimeBoxing/TimeBoxing";
 
 const App = () => {
     useEffect(() => {
@@ -53,12 +56,14 @@ const App = () => {
                 <main>
                     <Routes>
                         <Route path="/" element={<Home/>}/>
+                        <Route path="/notes" element={<Notes/>}/>
                         <Route path="/jobs" element={<Jobs/>}/>
-                        <Route path="/editor" element={<Editor/>}/>
+                        <Route path="/tinymce" element={<Tinymce/>}/>
                         <Route path="/calendar" element={<Calendar/>}/>
-                        <Route path="/jobs" element={<Jobs/>}/>
                     </Routes>
                 </main>
+            <Footer />
+
         </>
     );
 };

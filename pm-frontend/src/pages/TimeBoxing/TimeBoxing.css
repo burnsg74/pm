@@ -1,0 +1,74 @@
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 16px;
+    justify-items: center;
+}
+
+
+.card {
+    position: relative;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 100%;
+    max-width: 250px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+
+.card-link {
+    text-decoration: none;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.link {
+    text-decoration: none;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: #606060;
+    border-left: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.draggable-event {
+    padding: 8px;
+    margin: 4px;
+    background-color: lightblue;
+    border: 1px solid #ccc;
+    cursor: move;
+    border-radius: 4px;
+}
+
+.dropped-event {
+    padding: 4px;
+    background-color: lightgreen;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+}

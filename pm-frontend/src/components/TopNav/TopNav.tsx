@@ -44,9 +44,24 @@ function TopNav() {
                     <Link to="/" className={`${styles.link}`}>
                         Home
                     </Link>
+                    {/*<Link to="/notes" className={`${styles.link}`}>*/}
+                    {/*    Notes*/}
+                    {/*</Link>*/}
+                    {/*<Link to="/tinymce" className={`${styles.link}`}>*/}
+                    {/*    TinyMCE*/}
+                    {/*</Link>*/}
+                    <Link to="/calendar" className={`${styles.link}`}>
+                        Calendar
+                    </Link>
+                    <Link to="/jobs" className={`${styles.link}`}>
+                        Jobs
+                    </Link>
+                    {/*<Link to="/timeboxing" className={`${styles.link}`}>*/}
+                    {/*    Timeboxing*/}
+                    {/*</Link>*/}
                 </div>
                 <div className={`${styles.navbarColumn}`}>
-                    Pick up Ethan: {countdown}
+                    {/*Pick up Ethan: {countdown}*/}
                 </div>
                 <div className={`${styles.navbarColumn}`}>
                     <Link to="/calendar" className={`${styles.link}`}>

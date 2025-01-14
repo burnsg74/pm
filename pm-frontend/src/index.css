@@ -8,6 +8,10 @@
     --gap: 1rem;
 }
 
+body {
+    margin: 0;
+}
+
 main {
     margin-top: 25px;
 }

@@ -13,16 +13,20 @@ const dbPath = process.env.NODE_ENV === 'production'
     ? process.env.DB_PATH_PROD
     : process.env.DB_PATH_DEV;
 
+const db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error('Failed to connect to database:', err.message);
+    } else {
+        console.log('Connected to SQLite database');
+    }
+});
+
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/hello', (req, res) => {
-    res.send('Hello World!');
-});
-
 app.post('/api/db', (req, res) => {
     const { query, id } = req.body;
-    console.log('Query:', query);
+    console.log('Query:', dbPath, query);
     if (!query || typeof query !== 'string') {
         res.status(400).send('Invalid query');
         return;
@@ -32,9 +36,6 @@ app.post('/api/db', (req, res) => {
         res.status(400).send('Invalid SQL operation');
         return;
     }
-
-    sqlite3.verbose();
-    const db = new sqlite3.Database(dbPath);
 
     if (operation === 'SELECT') {
         db.all(query, [], (err, records) => {
@@ -63,8 +64,18 @@ app.post('/api/db', (req, res) => {
             }
         });
     }
+});
 
-    db.close();
+process.on('SIGINT', () => {
+    console.log('Closing SQLite database connection due to app termination...');
+    db.close((err) => {
+        if (err) {
+            console.error('Error closing SQLite database connection:', err.message);
+        } else {
+            console.log('SQLite database connection closed');
+        }
+        process.exit(0);
+    });
 });
 
 
