@@ -44,6 +44,14 @@ function TopNav() {
                     <Link to="/" className={`${styles.link}`}>
                         Home
                     </Link>
+                     {/*Areas*/}
+                    <Link to="/areas" className={`${styles.link}`}>
+                        Areas
+                    </Link>
+                    <Link to="/projects" className={`${styles.link}`}>
+                        Projects
+                    </Link>
+
                     {/*<Link to="/notes" className={`${styles.link}`}>*/}
                     {/*    Notes*/}
                     {/*</Link>*/}

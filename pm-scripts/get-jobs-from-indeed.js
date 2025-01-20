@@ -10,8 +10,8 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV ?? 'development'}` });
 // --- Constants ---
 // const SEARCH_TERMS = ["Web Developer"];
 const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
-const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex",].map(escapeRegExp);
-const SKILLS_UNKNOWN = ["MS SQL", "Ruby on Rails", "Ruby", "Azure", ".Net", "Java", "C#", "C++", "Swift", "Kotlin", "Angular", "Flutter", "Spring", "MSSQL", "Next.js", "ASP.NET", "VB.Net", "VB", "PostgreSQL", "Wordpress", "Drupal", "Visual Basic",].map(escapeRegExp);
+const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL",].map(escapeRegExp);
+const SKILLS_UNKNOWN = ["MS SQL", "Ruby on Rails", "Ruby", "Azure", ".Net", "Java", "C#", "C++", "Swift", "Kotlin", "Angular", "Flutter", "Spring", "MSSQL", "Next.js", "ASP.NET", "VB.Net", "VB", "Wordpress", "Drupal", "Visual Basic",].map(escapeRegExp);
 const FROM_AGE = '1'; // last, 1, 3
 const VERIFICATION_TEXT = "Additional Verification Required";
 const EXPIRED_TEXT = "This job has expired on Indeed";
@@ -37,7 +37,7 @@ for (const SEARCH_TERM of SEARCH_TERMS) {
     let pageNumber = 0;
     while (true) {
         pageNumber++;
-        console.log("Page Number:", pageNumber);
+        console.log(SEARCH_TERM, ": Page Number:", pageNumber);
         await pauseInMs(PAUSE_IN_MS);
         await verificationRequiredCheck(browsersFirstTab);
         await simulateUserWindowScroll(browsersFirstTab);
@@ -57,10 +57,9 @@ const INSERT_QUERY = `
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 const preparedStatement = databaseConnection.prepare(INSERT_QUERY);
 
-
-
+let i = 0;
 for (const newJob of newJobList) {
-    console.log("Getting Job Details for:", newJob.jk);
+    console.log(++i, "of", newJobList.length, ":", newJob.jk);
     const URL = newJob.link;
     await browsersFirstTab.goto(URL);
     await pauseInMs(PAUSE_IN_MS);
@@ -156,7 +155,7 @@ async function fetchJobsFromDB(db) {
 async function openChrome() {
     execSync('open -a "Google Chrome" --args --remote-debugging-port=9222 https://www.indeed.com');
     console.log("Waiting for Chrome to launch...");
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 10000));
     return await chromium.connectOverCDP('http://127.0.0.1:9222');
 }
 
@@ -276,7 +275,6 @@ function saveCache(data) {
             fs.mkdirSync(dir, {recursive: true});
         }
         fs.writeFileSync(JOB_CACHE_FILE, JSON.stringify(data, null, 2), 'utf8');
-        console.log("Cache updated successfully.");
     } catch (error) {
         console.error("Error writing to cache file:", error);
     }

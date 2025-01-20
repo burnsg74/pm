@@ -6,6 +6,7 @@ import Table from 'react-bootstrap/Table';
 import "./Home.css";
 import { useEffect } from "react";
 import {bottom} from "@popperjs/core";
+import {Badge, Card} from "react-bootstrap";
 
 const HomePage: React.FC = () => {
   const [draggedEvent, setDraggedEvent] = useState<string | null>(null);
@@ -66,17 +67,42 @@ const HomePage: React.FC = () => {
 
   return (
       <div className="grid-container">
-        <div className="fixed-bottom" style={{bottom: '30px'}}>
-          <div className="bottom-content">
-            <h6>Monday, Jan 13th</h6>
-            <span> {new Date().toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true
-            }).toLowerCase()} &gt; </span>
-            <input type="text" placeholder="Enter text here" className="bottom-input" style={{width: '90%'}}/>
-          </div>
-        </div>
+        <Card className="h-100">
+          <Card.Body>
+            <div className="d-flex justify-content-between">
+              <div>
+                <h5 className="mb-1">
+                 Job Hunting
+                </h5>
+              </div>
+              <h4>112</h4>
+            </div>
+          </Card.Body>
+        </Card>
+        <Card className="h-100">
+          <Card.Body>
+            <div className="d-flex justify-content-between">
+              <div>
+                <h5 className="mb-1">
+                  SwiftERM
+                </h5>
+              </div>
+              <h4>112</h4>
+            </div>
+          </Card.Body>
+        </Card>
+
+        {/*<div className="fixed-bottom" style={{bottom: '30px'}}>*/}
+        {/*  <div className="bottom-content">*/}
+        {/*    <h6>Monday, Jan 13th</h6>*/}
+        {/*    <span> {new Date().toLocaleTimeString([], {*/}
+        {/*      hour: '2-digit',*/}
+        {/*      minute: '2-digit',*/}
+        {/*      hour12: true*/}
+        {/*    }).toLowerCase()} &gt; </span>*/}
+        {/*    <input type="text" placeholder="Enter text here" className="bottom-input" style={{width: '90%'}}/>*/}
+        {/*  </div>*/}
+        {/*</div>*/}
       </div>
   );
 };

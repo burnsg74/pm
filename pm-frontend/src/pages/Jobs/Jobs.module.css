@@ -38,10 +38,8 @@
 }
 
 .navJobs {
-    /*width: 630px;*/
-    /*overflow-y: auto;*/
-    /*background-color: #f0f0f0;*/
-    height: calc(100vh - 1.7rem);
+    overflow-y: auto;
+    height: calc(100vh - 2rem);
 }
 
 .statusGroup {

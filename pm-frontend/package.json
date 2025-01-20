@@ -24,7 +24,7 @@
     "@tinymce/tinymce-react": "^5.1.1",
     "ag-charts-react": "^10.3.3",
     "ag-grid-community": "^32.3.3",
-    "ag-grid-react": "^32.3.3",
+    "ag-grid-react": "^33",
     "bootstrap": "^5.3.3",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
