@@ -152,11 +152,25 @@ async function fetchJobsFromDB(db) {
     });
 }
 
+// async function openChrome() {
+//     execSync('open -a "Google Chrome" --args --remote-debugging-port=9222 https://www.indeed.com');
+//     console.log("Waiting for Chrome to launch...");
+//     await new Promise(resolve => setTimeout(resolve, 10000));
+//     return await chromium.connectOverCDP('http://127.0.0.1:9222');
+// }
+
 async function openChrome() {
-    execSync('open -a "Google Chrome" --args --remote-debugging-port=9222 https://www.indeed.com');
+    // Change "Default" to the desired profile directory name
+    // const profile = "_Home_";
+    const profile = "Profile 1";
+    const url = "https://www.indeed.com";
+    const remoteDebuggingPort = 9222;
+
+    execSync(`open -na "Google Chrome" --args --remote-debugging-port=${remoteDebuggingPort} --profile-directory="${profile}" ${url}`);
     console.log("Waiting for Chrome to launch...");
     await new Promise(resolve => setTimeout(resolve, 10000));
-    return await chromium.connectOverCDP('http://127.0.0.1:9222');
+
+    return await chromium.connectOverCDP(`http://127.0.0.1:${remoteDebuggingPort}`);
 }
 
 async function pauseInMs(pauseInMs) {

@@ -9,9 +9,7 @@ console.log('PORT:', port);
 dotenv.config();
 sqlite3.verbose();
 
-const dbPath = process.env.NODE_ENV === 'production'
-    ? process.env.DB_PATH_PROD
-    : process.env.DB_PATH_DEV;
+const dbPath = process.env.NODE_ENV === 'production' ? process.env.DB_PATH_PROD : process.env.DB_PATH_DEV;
 
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
@@ -25,7 +23,7 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/api/db', (req, res) => {
-    const { query, id } = req.body;
+    const {query, id} = req.body;
     console.log('Query:', dbPath, query);
     if (!query || typeof query !== 'string') {
         res.status(400).send('Invalid query');
@@ -64,6 +62,39 @@ app.post('/api/db', (req, res) => {
             }
         });
     }
+});
+
+app.post('/api/worklogs', (req, res) => {
+    const {startAt, duration, subject, description, scratchpad} = req.body;
+
+    // Validate required fields
+    if (!startAt || !duration || !subject) {
+        res.status(400).send('Missing required fields: start_at, duration, or subject');
+        return;
+    }
+
+    const endAtDate = new Date(new Date(startAt).getTime() + duration * 60000).toISOString();
+    const query = `
+        INSERT INTO work_log (start_at, end_at, duration, subject, description, scratchpad)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const params = [startAt, endAtDate, duration, subject, description || null, scratchpad || null];
+
+    db.run(query, params, function (err) {
+        if (err) {
+            console.error('Error inserting worklog:', err.message);
+            res.status(500).send('Failed to save worklog');
+            return;
+        }
+        db.get('SELECT * FROM work_log WHERE id = ?', [this.lastID], (err, row) => {
+            if (err) {
+                res.status(500).send({error: "Failed to retrieve record"});
+                return;
+            }
+
+            res.status(201).send(row);
+        });
+    })
 });
 
 process.on('SIGINT', () => {

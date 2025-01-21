@@ -7,9 +7,6 @@ import Calendar from "./pages/Calendar/Calendar";
 import TopNav from "./components/TopNav/TopNav";
 import Footer from "./components/Footer/Footer";
 import Notes from "./pages/Notes/Notes";
-import Areas from "./pages/Areas/Areas";
-import TimeBoxing from "./pages/TimeBoxing/TimeBoxing";
-import Projects from "./pages/Projects/Projects";
 
 const App = () => {
     useEffect(() => {
@@ -58,8 +55,6 @@ const App = () => {
                 <main>
                     <Routes>
                         <Route path="/" element={<Home/>}/>
-                        <Route path="/areas" element={<Areas/>}/>
-                        <Route path="/projects" element={<Projects/>}/>
                         <Route path="/notes" element={<Notes/>}/>
                         <Route path="/jobs" element={<Jobs/>}/>
                         <Route path="/tinymce" element={<Tinymce/>}/>

@@ -45,12 +45,12 @@ function TopNav() {
                         Home
                     </Link>
                      {/*Areas*/}
-                    <Link to="/areas" className={`${styles.link}`}>
-                        Areas
-                    </Link>
-                    <Link to="/projects" className={`${styles.link}`}>
-                        Projects
-                    </Link>
+                    {/*<Link to="/areas" className={`${styles.link}`}>*/}
+                    {/*    Areas*/}
+                    {/*</Link>*/}
+                    {/*<Link to="/projects" className={`${styles.link}`}>*/}
+                    {/*    Projects*/}
+                    {/*</Link>*/}
 
                     {/*<Link to="/notes" className={`${styles.link}`}>*/}
                     {/*    Notes*/}
@@ -58,9 +58,9 @@ function TopNav() {
                     {/*<Link to="/tinymce" className={`${styles.link}`}>*/}
                     {/*    TinyMCE*/}
                     {/*</Link>*/}
-                    <Link to="/calendar" className={`${styles.link}`}>
-                        Calendar
-                    </Link>
+                    {/*<Link to="/calendar" className={`${styles.link}`}>*/}
+                    {/*    Calendar*/}
+                    {/*</Link>*/}
                     <Link to="/jobs" className={`${styles.link}`}>
                         Jobs
                     </Link>
