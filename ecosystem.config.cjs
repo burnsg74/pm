@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "pm",
-      script: "app.js",
+      script: "build/index.js",
       instances: 1,
       watch: false,
       exec_mode: "cluster",

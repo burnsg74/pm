@@ -3,6 +3,7 @@
 !.gitignore
 
 node_modules/
+build/
 package-lock.json
 /pm-frontend/dist/*
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
