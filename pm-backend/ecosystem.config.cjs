@@ -2,8 +2,7 @@ module.exports = {
   apps: [
     {
       name: "pm",
-      script: "fastify",
-      args: ["start", "app.js"],
+      script: "./app.js",
       instances: 1,
       watch: false,
       exec_mode: "cluster",
