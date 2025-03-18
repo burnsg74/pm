@@ -1,30 +1,42 @@
 'use strict'
 
 const path = require('node:path')
+const fs = require('node:fs') // Import the fs module
+const pluginPath = path.join(__dirname, 'plugins')
+const routePath = path.join(__dirname, 'routes')
 const AutoLoad = require('@fastify/autoload')
-
-// Pass --options via CLI arguments in command to enable these options.
+const fastify = require('fastify');
 const options = {}
+const app = fastify();
 
 module.exports = async function (fastify, opts) {
-  // Place here your custom code!
+  if (!fs.existsSync(pluginPath)) {
+    throw new Error(`Plugin path not found: ${pluginPath}`);
+  }
+  if (!fs.existsSync(routePath)) {
+    throw new Error(`Route path not found: ${routePath}`);
+  }
 
-  // Do not touch the following lines
-
-  // This loads all plugins defined in plugins
-  // those should be support plugins that are reused
-  // through your application
   fastify.register(AutoLoad, {
-    dir: path.join(__dirname, 'plugins'),
+    dir: pluginPath,
     options: Object.assign({}, opts)
   })
 
-  // This loads all plugins defined in routes
-  // define your routes in one of these
   fastify.register(AutoLoad, {
-    dir: path.join(__dirname, 'routes'),
+    dir: routePath,
     options: Object.assign({}, opts)
   })
 }
 
 module.exports.options = options
+
+const start = async () => {
+  try {
+    await app.listen({ port: process.env.PORT || 3000, host: '0.0.0.0' })
+    console.log(`Server running at http://localhost:${process.env.PORT || 3000}`)
+  } catch (err) {
+    console.error(err)
+    process.exit(1)
+  }
+}
+start().then()
