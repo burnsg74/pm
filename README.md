@@ -1,13 +1,7 @@
-# Frontend Installation
+# Project Management
 
-React, Redux, TS template for Vite.
+Task Manager, Time Manager, and Note Manager combined into one web application.
 
-```sh
-npx degit reduxjs/redux-templates/packages/vite-template-redux pm 
-```
-
-
-Markdown vs WYSIWYG
-- Markdown is a lightweight markup language with plain text formatting syntax.
-- WYSIWYG (What You See Is What You Get) editors are rich text editors that allow you to see the final result of your document while you are creating it.
-
+Frontend - React with Redux
+Backend - Node.js with Fastify pulling data from Markdown files in Dropbox folder.
+Nginx - Web server

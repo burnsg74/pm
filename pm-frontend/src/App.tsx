@@ -1,70 +1,68 @@
-import {useEffect} from "react";
-import {Route, Routes} from "react-router-dom";
-import Home from "./pages/Home/Home";
-import Tinymce from "./pages/Tinymce/Tinymce";
-import Jobs from "./pages/Jobs/Jobs";
-import Calendar from "./pages/Calendar/Calendar";
-import TopNav from "./components/TopNav/TopNav";
-import Footer from "./components/Footer/Footer";
-import Notes from "./pages/Notes/Notes";
+import "./App.css"
+import { Counter } from "./features/counter/Counter"
+import { Quotes } from "./features/quotes/Quotes"
+import logo from "./logo.svg"
 
 const App = () => {
-    useEffect(() => {
-        // const handleKeyPress = (event: KeyboardEvent) => {
-        //   const keys = [];
-        //   if (event.metaKey) keys.push('Meta');
-        //   if (event.ctrlKey) keys.push('Ctrl');
-        //   if (event.shiftKey) keys.push('Shift');
-        //   if (event.altKey) keys.push('Alt');
-        //   keys.push(event.key);
-        //   console.log(event)
-        //   console.log('Key pressed:', keys.join(' + '));
-        // };
-        // window.addEventListener('keydown', handleKeyPress);
-        // Function to fetch data
-        // const API_BASE_URL = import.meta.env.VITE_API_URL;
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <Counter />
+        <p>
+          Edit <code>src/App.tsx</code> and save to reload.
+        </p>
+        <Quotes />
+        <span>
+          <span>Learn </span>
+          <a
+            className="App-link"
+            href="https://reactjs.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            React
+          </a>
+          <span>, </span>
+          <a
+            className="App-link"
+            href="https://redux.js.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Redux
+          </a>
+          <span>, </span>
+          <a
+            className="App-link"
+            href="https://redux-toolkit.js.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Redux Toolkit
+          </a>
+          <span>, </span>
+          <a
+            className="App-link"
+            href="https://react-redux.js.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            React Redux
+          </a>
+          ,<span> and </span>
+          <a
+            className="App-link"
+            href="https://reselect.js.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Reselect
+          </a>
+        </span>
+      </header>
+    </div>
+  )
+}
 
-        // async function fetchData() {
-        //     try {
-        //         const query = `SELECT *
-        //                        FROM jobs`;
-        //         const response = await fetch(`${API_BASE_URL}/api/db`,
-        //             {
-        //                 method: "POST",
-        //                 headers: {
-        //                     "Content-Type": "application/json",
-        //                 },
-        //                 body: JSON.stringify({query}),
-        //             });
-        //         console.log(response);
-        //     } catch (error) {
-        //         console.error(error);
-        //     }
-        // }
-
-        // Call the function
-        // fetchData();
-        // return () => {
-        //   window.removeEventListener('keydown', handleKeyPress);
-        // };
-    }, []);
-
-    return (
-        <>
-                <TopNav/>
-                <main>
-                    <Routes>
-                        <Route path="/" element={<Home/>}/>
-                        <Route path="/notes" element={<Notes/>}/>
-                        <Route path="/jobs" element={<Jobs/>}/>
-                        <Route path="/tinymce" element={<Tinymce/>}/>
-                        <Route path="/calendar" element={<Calendar/>}/>
-                    </Routes>
-                </main>
-            <Footer />
-
-        </>
-    );
-};
-
-export default App;
+export default App
