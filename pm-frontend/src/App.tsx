@@ -1,37 +1,22 @@
-import { useEffect, useState } from "react"
+import { Route, Routes } from "react-router-dom"
+import Home from "./pages/Home/Home"
+import Settings from "./pages/Settings/Settings"
+import Footer from "./components/Footer/Footer"
+import TopNav from "./components/TopNav/TopNav"
+
 const App = () => {
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const response = await fetch("https://pm.localhost/api/")
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`)
-          }
-          const result = await response.text()
-          setData(result)
-        } catch (err: any) {
-          setError(err.message)
-        }
-      }
-
-      fetchData().then()
-    }, [])
-
-    return (
-      <div className="App">
-        <h1>Hello World</h1>
-        API RESULT: {error ? (
-          <p>Error: {error}</p>
-        ) : data ? (
-          <pre>{data}</pre>
-          ) : (
-          <p>Loading...</p>
-          )}
-      </div>
-    )
+  return (
+    <>
+      <TopNav/>
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </main>
+      <Footer />
+    </>
+  )
 }
 
 export default App
