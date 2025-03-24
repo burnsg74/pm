@@ -1,25 +1,31 @@
 @charset "UTF-8";
 
+:root,
 :root {
-    --background-color: #2d3748;
-    --link-color: #ffffff;
-    --link-hover-color: #e2e8f0;
-    --padding-left: 0.25rem;
-    --gap: 1rem;
+    --nav-border-color: #cbd0dd;
+    --top-nav-height:1.7rem;
 }
 
-body {
-    margin: 0;
+[data-bs-theme=light] {
+
 }
 
-main {
-    margin-top: 25px;
+[data-bs-theme=dark] {
+    color-scheme: dark;
 }
 
-.highlight-green {
-    background-color: #84ff00;
+.dropdown-caret-none:after {
+    display: none;
 }
 
-.highlight-red {
-    background-color: #fd7676;
+.cm-scroller {
+    overflow: auto;
+    min-height: 888px
+}
+
+.ͼ1 .cm-content {
+    padding: 5px;
+    flex-shrink:1;
+    white-space: normal;
+    word-wrap: normal;
 }

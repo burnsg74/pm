@@ -4,6 +4,9 @@ const dotenv = require('dotenv');
 const app = express();
 const port = process.env.PORT || 5174;
 const cors = require('cors');
+const fs = require("fs");
+const path = require("path");
+const req = require("express/lib/request");
 console.log('PORT:', port);
 
 dotenv.config();
@@ -21,6 +24,76 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 app.use(cors());
 app.use(express.json());
+
+app.get('/api/docs', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+
+    const docsDirectory = '/Users/greg/Notebooks/Docs';
+
+    fs.readdir(docsDirectory, {withFileTypes: true}, (err, files) => {
+        if (err) {
+            console.error('Error reading docs directory:', err.message);
+            res.status(500).send('Failed to read docs directory');
+        } else {
+            const filePaths = files
+                .filter(file => file.isFile() && path.extname(file.name) === '.md')
+                .map(file => `/${file.name}`);
+            res.json(filePaths);
+        }
+    });
+})
+
+app.post('/api/doc', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    console.log('Received request to read file:', req.body);
+    const { fileName } = req.body; // Ensure fileName is read from request body
+
+    console.log('Received fileName:', fileName);
+
+    if (!fileName) {
+        res.status(400).send('Missing fileName in request body');
+        return;
+    }
+
+    const docsDirectory = '/Users/greg/Notebooks/Docs';
+    const filePath = path.join(docsDirectory, fileName);
+
+    fs.access(filePath, fs.constants.F_OK, (accessErr) => {
+        if (accessErr) {
+            console.error('File not found:', filePath);
+            res.status(404).send('File not found');
+            return;
+        }
+
+        fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+                console.error('Error reading the file:', err.message);
+                res.status(500).send('Failed to read the file');
+                return;
+            }
+            res.send(data);
+        });
+    });
+});
+
+
+// saveContent
+app.put('/api/saveContent', (req, res) => {
+    const docsDirectory = '/Users/greg/Notebooks/Docs';
+    const {fileName, content} = req.body;
+    console.log(fileName, content)
+    const filePath = path.join(docsDirectory, fileName);
+    fs.writeFile(filePath, content, (err) => {
+        if (err) {
+            console.error('Error writing the file:', err.message);
+            res.status(500).send('Failed to write the file');
+            return;
+        }
+        res.send('File saved successfully');
+    })
+})
 
 app.post('/api/db', (req, res) => {
     const {query, id} = req.body;
