@@ -3,9 +3,9 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #fff;
-    border-bottom: 1px solid #cbd0dd;
     border-top: 1px solid #cbd0dd;
+    background-color: var(--nav-background-color);
+    color: var(--nav-color);
 }
 
 .footerColumns {
@@ -19,7 +19,6 @@
 .column {
     flex: 1;
     text-align: center;
-    color: #6c757d;
 }
 
 .column.left {

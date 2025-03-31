@@ -1,31 +1,83 @@
 @charset "UTF-8";
 
-:root,
+/* Theme Default Light, Dark */
 :root {
     --nav-border-color: #cbd0dd;
-    --top-nav-height:1.7rem;
+    --navbar-vertical-border-color: #cbd0dd;
+    --top-nav-height: 1.7rem;
+    --main-background-color: #F5F7FA;
+    --nav-background-color:#F7F8FA;
+    --nav-color: #252525;
 }
 
-[data-bs-theme=light] {
-
+/* Normalize styles by resetting default browser styles */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-[data-bs-theme=dark] {
-    color-scheme: dark;
+html,
+body {
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: var(--main-background-color);
+    color: var(--nav-color);
+    margin: 0;
 }
 
-.dropdown-caret-none:after {
-    display: none;
+a {
+    text-decoration: none;
+    color: inherit;
 }
 
-.cm-scroller {
-    overflow: auto;
-    min-height: 888px
+ul,
+ol {
+    list-style: none;
 }
 
-.ͼ1 .cm-content {
-    padding: 5px;
-    flex-shrink:1;
-    white-space: normal;
-    word-wrap: normal;
+h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+    font-weight: normal;
+}
+
+button {
+    border: none;
+    outline: none;
+    background: none;
+    cursor: pointer;
+}
+
+main {
+    background-color: var(--main-background-color);
+    height: calc(100vh - 40px);
+}
+
+h2 {
+    margin: 0;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.text-end {
+    text-align: right;
+    padding-right: 8px;
+    font-size: 1rem;
+}
+
+.text-start {
+    text-align: left;
+    padding-left: 8px;
+    font-size: 1rem;
+}
+
+.fw-bold {
+    font-weight: bold;
+    color: #333;
 }

@@ -1,0 +1,50 @@
+.frontMatterTable {
+    width: 100%;
+    border-collapse: collapse;
+    border-bottom: 1px solid #d0d0d0;
+}
+.frontMatterTable th, td {
+    padding: 8px;
+    white-space: nowrap;
+    border: none;
+    text-align:left;
+}
+.frontMatterTable td {
+    text-align:right;
+}
+
+.jobPostHtml {
+    padding: 20px 30px 80px;
+    font-size: 1.2em;
+}
+
+.jobPostHtml h1 {
+    font-size: 1.5em;
+}
+
+.jobPostHtml h2 {
+    font-size: 1.2em;
+}
+
+.jobPostHtml h3 {
+    font-size: 1em;
+}
+
+.jobPostHtml p {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.jobPostHtml ul {
+    padding-top: 5px;
+}
+
+.jobPostHtml li {
+    list-style-type: disc;
+    margin-left: 20px;
+}
+
+.aLink {
+    text-decoration: none;
+    color: #001d9e;
+}

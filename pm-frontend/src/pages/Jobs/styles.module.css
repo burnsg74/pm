@@ -1,0 +1,26 @@
+
+.container {
+    display: grid;
+    grid-template-columns: 25% 75%;
+}
+.applyForNewJobsButtons {
+    background-color: transparent; /* Transparent background */
+    color: #007bff; /* Primary color for text */
+    border: 2px solid #007bff; /* Border with primary color */
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer;
+    transition: all 0.3s ease; /* Smooth transitions for hover effects */
+}
+
+.applyForNewJobsButtons:hover {
+    background-color: #007bff; /* Primary color on hover */
+    color: white; /* White text on hover */
+    transform: scale(1.05); /* Slight zoom effect */
+}
+
+.applyForNewJobsButtons:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Glow effect on focus */
+}

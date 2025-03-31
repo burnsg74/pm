@@ -1,0 +1,21 @@
+.cardTable {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.cardTable th {
+    font-weight: normal;
+    text-align: right;
+    padding: 0 8px;
+}
+
+.cardTable td {
+    font-weight: bold;
+    padding: 0 8px;
+}
+
+.cardText {
+    font-size: 1em;
+}

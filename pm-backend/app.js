@@ -1,19 +1,25 @@
 const express = require('express');
-const sqlite3 = require('sqlite3');
 const dotenv = require('dotenv');
-const app = express();
-const port = process.env.PORT || 5174;
 const cors = require('cors');
-const fs = require("fs");
+const sqlite3 = require('sqlite3');
+const fs = require('fs').promises;
 const path = require("path");
 const req = require("express/lib/request");
-console.log('PORT:', port);
+const yaml = require('js-yaml');
+const {marked} = require('marked');
+const grayMatter = require('gray-matter');
+const app = express();
+const port = process.env.PORT || 5174;
+const JOBS_NEW_PATH = process.env.JOBS_DIR ||
+    '/Users/greg/Library/CloudStorage/Dropbox/PM/Areas/Job Search/Jobs';
+
 
 dotenv.config();
+app.use(cors());
+app.use(express.json());
 sqlite3.verbose();
 
 const dbPath = process.env.NODE_ENV === 'production' ? process.env.DB_PATH_PROD : process.env.DB_PATH_DEV;
-
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Failed to connect to database:', err.message);
@@ -21,79 +27,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
         console.log('Connected to SQLite database');
     }
 });
-
-app.use(cors());
-app.use(express.json());
-
-app.get('/api/docs', (req, res) => {
-    const fs = require('fs');
-    const path = require('path');
-
-    const docsDirectory = '/Users/greg/Notebooks/Docs';
-
-    fs.readdir(docsDirectory, {withFileTypes: true}, (err, files) => {
-        if (err) {
-            console.error('Error reading docs directory:', err.message);
-            res.status(500).send('Failed to read docs directory');
-        } else {
-            const filePaths = files
-                .filter(file => file.isFile() && path.extname(file.name) === '.md')
-                .map(file => `/${file.name}`);
-            res.json(filePaths);
-        }
-    });
-})
-
-app.post('/api/doc', (req, res) => {
-    const fs = require('fs');
-    const path = require('path');
-    console.log('Received request to read file:', req.body);
-    const { fileName } = req.body; // Ensure fileName is read from request body
-
-    console.log('Received fileName:', fileName);
-
-    if (!fileName) {
-        res.status(400).send('Missing fileName in request body');
-        return;
-    }
-
-    const docsDirectory = '/Users/greg/Notebooks/Docs';
-    const filePath = path.join(docsDirectory, fileName);
-
-    fs.access(filePath, fs.constants.F_OK, (accessErr) => {
-        if (accessErr) {
-            console.error('File not found:', filePath);
-            res.status(404).send('File not found');
-            return;
-        }
-
-        fs.readFile(filePath, 'utf8', (err, data) => {
-            if (err) {
-                console.error('Error reading the file:', err.message);
-                res.status(500).send('Failed to read the file');
-                return;
-            }
-            res.send(data);
-        });
-    });
-});
-
-
-// saveContent
-app.put('/api/saveContent', (req, res) => {
-    const docsDirectory = '/Users/greg/Notebooks/Docs';
-    const {fileName, content} = req.body;
-    console.log(fileName, content)
-    const filePath = path.join(docsDirectory, fileName);
-    fs.writeFile(filePath, content, (err) => {
-        if (err) {
-            console.error('Error writing the file:', err.message);
-            res.status(500).send('Failed to write the file');
-            return;
-        }
-        res.send('File saved successfully');
-    })
-})
 
 app.post('/api/db', (req, res) => {
     const {query, id} = req.body;
@@ -137,38 +70,155 @@ app.post('/api/db', (req, res) => {
     }
 });
 
-app.post('/api/worklogs', (req, res) => {
-    const {startAt, duration, subject, description, scratchpad} = req.body;
+app.get('/api/docs', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
 
-    // Validate required fields
-    if (!startAt || !duration || !subject) {
-        res.status(400).send('Missing required fields: start_at, duration, or subject');
+    const docsDirectory = '/Users/greg/Notebooks/Docs';
+
+    fs.readdir(docsDirectory, {withFileTypes: true}, (err, files) => {
+        if (err) {
+            console.error('Error reading docs directory:', err.message);
+            res.status(500).send('Failed to read docs directory');
+        } else {
+            const filePaths = files
+                .filter(file => file.isFile() && path.extname(file.name) === '.md')
+                .map(file => `/${file.name}`);
+            res.json(filePaths);
+        }
+    });
+})
+
+app.post('/api/doc', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    console.log('Received request to read file:', req.body);
+    const {fileName} = req.body; // Ensure fileName is read from request body
+
+    console.log('Received fileName:', fileName);
+
+    if (!fileName) {
+        res.status(400).send('Missing fileName in request body');
         return;
     }
 
-    const endAtDate = new Date(new Date(startAt).getTime() + duration * 60000).toISOString();
-    const query = `
-        INSERT INTO work_log (start_at, end_at, duration, subject, description, scratchpad)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    const params = [startAt, endAtDate, duration, subject, description || null, scratchpad || null];
+    const docsDirectory = '/Users/greg/Notebooks/Docs';
+    const filePath = path.join(docsDirectory, fileName);
 
-    db.run(query, params, function (err) {
-        if (err) {
-            console.error('Error inserting worklog:', err.message);
-            res.status(500).send('Failed to save worklog');
+    fs.access(filePath, fs.constants.F_OK, (accessErr) => {
+        if (accessErr) {
+            console.error('File not found:', filePath);
+            res.status(404).send('File not found');
             return;
         }
-        db.get('SELECT * FROM work_log WHERE id = ?', [this.lastID], (err, row) => {
+
+        fs.readFile(filePath, 'utf8', (err, data) => {
             if (err) {
-                res.status(500).send({error: "Failed to retrieve record"});
+                console.error('Error reading the file:', err.message);
+                res.status(500).send('Failed to read the file');
                 return;
             }
-
-            res.status(201).send(row);
+            res.send(data);
         });
-    })
+    });
 });
+
+app.get('/api/jobs/counters', async (req, res) => {
+    let counters = {
+        new: 0,
+        applied: 0,
+        deleted: 0,
+        rejected: 0,
+        accepted: 0,
+        interview: 0,
+        offer: 0,
+        hired: 0,
+    };
+
+    try {
+        const files = await fs.readdir(JOBS_NEW_PATH, {withFileTypes: true});
+        const mdFiles = files.filter(file => file.isFile() && path.extname(file.name) === '.md');
+        await Promise.all(
+            mdFiles.map(async file => {
+                const filePath = path.join(JOBS_NEW_PATH, file.name);
+                try {
+                    const fileContent = await fs.readFile(filePath, 'utf8');
+                    const frontMatter = grayMatter(fileContent).data;
+                    if (frontMatter && frontMatter.status) {
+                        const status = frontMatter.status.toLowerCase();
+                        if (counters.hasOwnProperty(status)) {
+                            counters[status]++;
+                        }
+                    }
+                } catch (fileErr) {
+                    console.error(`Error reading or parsing file ${file.name}:`, fileErr.message);
+                }
+            })
+        );
+
+        return res.json(counters);
+    } catch (err) {
+        console.error('Error reading jobs directory:', err.message);
+        return res.status(500).send('Failed to process jobs directory');
+    }
+});
+
+
+app.get('/api/jobs/new', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    const JOBS_NEW_PATH = '/Users/greg/Library/CloudStorage/Dropbox/PM/Areas/Job Search/Jobs';
+    fs.readdir(JOBS_NEW_PATH, {withFileTypes: true}, (err, files) => {
+        if (err) {
+            console.error('Error reading docs directory:', err.message);
+            res.status(500).send('Failed to read docs directory');
+        } else {
+            const mdFiles = files.filter(file => file.isFile() && path.extname(file.name) === '.md');
+            const fileData = mdFiles.map(file => {
+                const filePath = path.join(JOBS_NEW_PATH, file.name);
+                const fileContent = fs.readFileSync(filePath, 'utf8');
+
+                let frontMatter = null;
+                let markdownContent = fileContent;
+
+                const frontMatterMatch = fileContent.match(/^---\n([\s\S]*?)\n---/);
+                if (frontMatterMatch) {
+                    try {
+                        frontMatter = yaml.load(frontMatterMatch[1]);
+                        markdownContent = fileContent.replace(frontMatterMatch[0], '').trim();
+                    } catch (parseErr) {
+                        console.error(`Error parsing YAML front matter in file ${file.name}:`, parseErr.message);
+                    }
+                }
+
+                if (frontMatter?.area === "Job Search" && frontMatter?.type === "Job") {
+                    const postHtml = marked(markdownContent);
+                    return {filePath, frontMatter, fileContent, postHtml};
+                }
+
+                return null;
+            }).filter(Boolean);
+            res.json(fileData);
+        }
+    })
+})
+
+
+// saveContent
+app.put('/api/saveContent', (req, res) => {
+    const docsDirectory = '/Users/greg/Notebooks/Docs';
+    const {fileName, content} = req.body;
+    console.log(fileName, content)
+    const filePath = path.join(docsDirectory, fileName);
+    fs.writeFile(filePath, content, (err) => {
+        if (err) {
+            console.error('Error writing the file:', err.message);
+            res.status(500).send('Failed to write the file');
+            return;
+        }
+        res.send('File saved successfully');
+    })
+})
 
 process.on('SIGINT', () => {
     console.log('Closing SQLite database connection due to app termination...');

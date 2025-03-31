@@ -1,0 +1,103 @@
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modalContent {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+}
+
+.modalInput,
+.modalTextArea,
+.modalSelect {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+}
+
+.addButton {
+    color: #007bff;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.addButton:hover {
+    color: #0056b3;
+}
+
+.modalInput {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+}
+
+.modalSelect {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+}
+
+.modalFooter {
+    display: flex;
+    justify-content: end;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.closeButton:hover {
+    color: #999;
+}
+
+
+.cardTable {
+    width: 100%;
+}
+
+.cardTable th {
+    font-weight: normal;
+    padding: 0 8px;
+    text-align: right;
+    white-space: nowrap;
+    width: auto;
+}
+
+.cardTable td {
+    font-weight: bold;
+    padding: 0 8px;
+    width: 100%;
+}
+.cardTable td:last-child {
+    white-space: nowrap;
+    width: auto;
+}
+
+.cardText {
+    font-size: 1em;
+}
