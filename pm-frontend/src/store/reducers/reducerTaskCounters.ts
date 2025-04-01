@@ -1,4 +1,6 @@
-interface TaskCounters {
+import { SET_ALL_TASK_COUNTERS } from "../store";
+
+export interface TaskCounters {
     Backlog: number;
     "In Progress": number;
     Done: number;
@@ -10,22 +12,9 @@ interface TaskCountersState {
     counters: TaskCounters;
 }
 
-const initialState: TaskCountersState = {
-    counters: {
-        Backlog: 0,
-        "In Progress": 0,
-        Done: 0,
-        Hold: 0,
-    },
-};
-
-const SET_ALL_COUNTERS = 'SET_ALL_COUNTERS';
-const INCREMENT_COUNTER = 'INCREMENT_COUNTER';
-const DECREMENT_COUNTER = 'DECREMENT_COUNTER';
-
-interface SetAllCountersAction {
-    type: typeof SET_ALL_COUNTERS;
-    payload: Partial<TaskCounters>;
+export interface TaskCounterApiResponse {
+    status: keyof TaskCounters;
+    count: number;
 }
 
 interface IncrementCounterAction {
@@ -42,7 +31,24 @@ interface DecrementCounterAction {
     };
 }
 
+interface SetAllCountersAction {
+    type: typeof SET_ALL_TASK_COUNTERS;
+    payload: Partial<TaskCounters>;
+}
+
 type TaskCountersActions = SetAllCountersAction | IncrementCounterAction | DecrementCounterAction;
+
+const initialState: TaskCountersState = {
+    counters: {
+        Backlog: 0,
+        "In Progress": 0,
+        Done: 0,
+        Hold: 0,
+    },
+};
+
+const INCREMENT_COUNTER = 'INCREMENT_COUNTER';
+const DECREMENT_COUNTER = 'DECREMENT_COUNTER';
 
 // Reducer function with type annotations
 const reducerTaskCounters = (
@@ -50,7 +56,7 @@ const reducerTaskCounters = (
     action: TaskCountersActions
 ): TaskCountersState => {
     switch (action.type) {
-        case 'SET_ALL_COUNTERS':
+        case 'SET_ALL_TASK_COUNTERS':
             return {
                 ...state,
                 counters: {

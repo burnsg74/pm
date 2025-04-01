@@ -1,7 +1,7 @@
 import React, {useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
 import {useDispatch, useSelector} from "react-redux";
-import {SET_ALL_COUNTERS} from "../../store/store.js";
+import {SET_ALL_JOB_COUNTERS} from "../../store/store.js";
 import styles from "./styles.module.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;

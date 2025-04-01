@@ -1,7 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './reducers';
 
-export const SET_ALL_COUNTERS = 'SET_ALL_COUNTERS';
+export const SET_ALL_TASK_COUNTERS = 'SET_ALL_TASK_COUNTERS';
+export const SET_ALL_JOB_COUNTERS = 'SET_ALL_JOB_COUNTERS';
 
 function loadFromLocalStorage(): ReturnType<typeof rootReducer> | undefined {
     try {

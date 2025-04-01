@@ -1,12 +1,38 @@
 import React, {useEffect, useState} from "react";
 import styles from "./styles.module.css";
+import {Breadcrumb} from 'react-bootstrap';
+import {Link} from "react-router-dom";
+
+interface Job {
+    id?: number;
+    source?: string;
+    jk: string;
+    title?: string;
+    company?: string;
+    search_query?: string;
+    salary_min?: number;
+    salary_max?: number;
+    link?: string;
+    post_html: string;
+    notes?: string;
+    status: "New" | "Applied" | "Deleted";
+    date_posted?: string;
+    date_new?: string;
+    date_saved?: string;
+    date_applied?: string;
+    date_interview?: string;
+    date_rejected?: string;
+    date_deleted?: string;
+    skills_known?: string;
+    skills_unknown?: string;
+}
 
 export default () => {
     const API_BASE_URL = import.meta.env.VITE_API_URL;
-    const [jobs, setJobs] = useState([]);
-    const [currentJob, setCurrentJob] = useState(null);
+    const [jobs, setJobs] = useState<Job[]>([]);
+    const [currentJob, setCurrentJob] = useState<Job | null>(null);
 
-    const formatDate = (dateString) => {
+    const formatDate = (dateString: string): string => {
         const date = new Date(dateString);
         return date.toLocaleDateString("en-US", {
             year: "numeric",
@@ -15,7 +41,7 @@ export default () => {
         });
     };
 
-    async function UpdateJob(job) {
+    async function UpdateJob(job: Job): Promise<Job> {
         const response = await fetch(`${API_BASE_URL}/api/job`, {
             method: "POST",
             headers: {
@@ -28,14 +54,18 @@ export default () => {
 
     useEffect(() => {
         async function fetchData() {
-            const response = await fetch(`${API_BASE_URL}/api/jobs/new`, {
-                method: "GET",
+            const response = await fetch(`${API_BASE_URL}/api/db`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
+                body: JSON.stringify({
+                    query: "SELECT * FROM jobs WHERE status = 'New'",
+                }),
             });
             return response.json();
         }
+
 
         fetchData()
             .then((data) => {
@@ -47,39 +77,104 @@ export default () => {
                 console.error(error);
             });
     }, []);
-    // {
-    //     "title": "Senior Full-Stack Developer",
-    //     "company": "ASET Partners",
-    //     "search_query": "Backend Developer,Senior Full Stack Engineer,Senior Full Stack Developer,Web Developer",
-    //     "salary_min": null,
-    //     "salary_max": null,
-    //     "link": "https://www.indeed.com/rc/clk?jk=a817e90b240738e9&bb=jhJjf-wBjjcPtLJ4h4D8wUpsqS7CxJTMF6AmS0n8yNdUIUzs0fBEbNPtAjtdMwaWho4d0p0IvmCPkk39jOVO6UtYYJCQ7KFyy3V8ZmUijH4Py0eIWneMXLh2cs5n6W7X&xkcb=SoAU67M30f7Vf2gFnj0HbzkdCdPP&fccid=db96a7568cd8a67a&vjs=3",
-    //     "status": "Applied",
-    //     "date_new": "2025-03-24T14:39:50.636Z",
-    //     "skills_known": "Python, React, MySQL, AWS, HTML, CSS, JavaScript, Django, Vue, Redis",
-    //     "skills_unknown": ""
-    // }
+
+    const handleAppliedClick = async () => {
+        if (currentJob && currentJob.id) {
+            const query = `
+            UPDATE jobs
+            SET status = 'Applied', date_applied = '${new Date().toISOString()}'
+            WHERE id = ${currentJob.id};
+        `;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/db`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ query }),
+                });
+
+                // const result = await response.json();
+                // console.log("Database updated (Applied):", result);
+
+                setJobs(prevJobs => {
+                    const jobIndex = prevJobs.findIndex(job => job.id === currentJob?.id);
+                    const updatedJobs = prevJobs.filter(job => job.id !== currentJob?.id);
+
+                    // Set the currentJob to the next job, or null if there are no more jobs
+                    setCurrentJob(updatedJobs[jobIndex] || updatedJobs[0] || null);
+
+                    return updatedJobs;
+                });
+
+            } catch (error) {
+                console.error("Error updating status (Applied):", error);
+            }
+        }
+    };
+
+    const handleDeletedClick = async () => {
+        if (currentJob && currentJob.id) {
+            const query = `
+            UPDATE jobs
+            SET status = 'Deleted', date_deleted = '${new Date().toISOString()}'
+            WHERE id = ${currentJob.id};
+        `;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/db`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ query }),
+                });
+
+                // const result = await response.json();
+                // console.log("Database updated (Deleted):", result);
+
+                setJobs(prevJobs => prevJobs.filter(job => job.id !== currentJob.id));
+
+                const remainingJobs = jobs.filter(job => job.id !== currentJob.id);
+                setCurrentJob(remainingJobs.length > 0 ? remainingJobs[0] : null);
+            } catch (error) {
+                console.error("Error updating status (Deleted):", error);
+            }
+        }
+    };
+
     return (
         <div className={`${styles.container}`}>
-            {currentJob?.frontMatter && (
+            <Breadcrumb>
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/' }}>Home</Breadcrumb.Item>
+                <Breadcrumb.Item active>Apply for New Jobs</Breadcrumb.Item>
+            </Breadcrumb>
+            <hr/>
+            {currentJob && (
                 <table className={`${styles.frontMatterTable}`}>
                     <tr>
-                        <th>{currentJob.frontMatter.title}, {currentJob.frontMatter.company}</th>
+                        <th>Job:</th>
+                        <td>{currentJob.title}</td>
+                        <th>Company:</th>
+                        <td>{currentJob.company}</td>
                         <td>
                             <a
                                 className={`${styles.aLink}`}
-                                href={currentJob.frontMatter.link}
+                                href={currentJob.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                Open in {currentJob.frontMatter.source}
+                                Open in {currentJob.source}
                             </a>
                         </td>
                     </tr>
-                    {currentJob?.frontMatter?.date_new && (
+                    {currentJob?.date_new && (
                         <tr>
-                            <th>{currentJob.frontMatter.skills_known}</th>
-                            <td>{formatDate(currentJob.frontMatter.date_new)}</td>
+                            <th>Skills:</th>
+                            <td>{currentJob.skills_known}</td>
+                            <th>New:</th>
+                            <td>{formatDate(currentJob.date_new)}</td>
                         </tr>
                     )}
                 </table>
@@ -100,49 +195,36 @@ export default () => {
                     <span style={{padding: 10}} className={`${styles.jobIndex}`}>
                         {`Job ${jobs.findIndex((job) => job === currentJob) + 1} of ${jobs.length}`}
                     </span>
-                <button
-                    className={`${styles.nextButton}`}
-                    onClick={() => {
-                        const currentIndex = jobs.findIndex((job) => job === currentJob);
-                        const nextIndex = (currentIndex + 1) % jobs.length;
-                        setCurrentJob(jobs[nextIndex]);
-                    }}
-                >
-                    Next
-                </button>
-                   &nbsp; ||  &nbsp;
                     <button
-                        className={`${styles.statusButton}`}
+                        className={`${styles.nextButton}`}
                         onClick={() => {
-                            const updatedJobs = jobs.map((job) =>
-                                job === currentJob ? {
-                                    ...job,
-                                    frontMatter: {...job.frontMatter, status: "Applied"}
-                                } : job
-                            );
-                            setJobs(updatedJobs);
-                            setCurrentJob({...currentJob, frontMatter: {...currentJob.frontMatter, status: "Applied"}});
+                            const currentIndex = jobs.findIndex((job) => job === currentJob);
+                            const nextIndex = (currentIndex + 1) % jobs.length;
+                            setCurrentJob(jobs[nextIndex]);
                         }}
                     >
-                        Set as Applied
+                        Next
                     </button>
-                    &nbsp;  &nbsp;
+                    &nbsp; ||  &nbsp;
                     <button
-                        className={`${styles.statusButton}`}
-                        onClick={() => {
-                            const updatedJobs = jobs.filter((job) => job !== currentJob);
-                            setJobs(updatedJobs);
-                            setCurrentJob(updatedJobs.length > 0 ? updatedJobs[0] : null);
-                        }}
+                        className={`${styles.applyButton}`}
+                        onClick={handleAppliedClick}
                     >
-                        Delete Job
+                        Mark as Applied
+                    </button>
+
+                    <button
+                        className={`${styles.deleteButton}`}
+                        onClick={handleDeletedClick}
+                    >
+                        Mark as Deleted
                     </button>
                 </>
             )}
-            {currentJob?.postHtml && (
+            {currentJob?.post_html && (
                 <div
                     className={`${styles.jobPostHtml}`}
-                    dangerouslySetInnerHTML={{__html: currentJob.postHtml}}
+                    dangerouslySetInnerHTML={{__html: currentJob.post_html}}
                 />
             )}
         </div>

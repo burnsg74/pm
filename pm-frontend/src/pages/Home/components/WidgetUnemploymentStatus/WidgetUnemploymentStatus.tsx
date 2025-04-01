@@ -49,26 +49,32 @@ const WidgetUnemploymentStatus = () => {
                 <tr>
                     <th>Dates:</th>
                     <td>01-Dec-2024 to 29-Nov-2025</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <th>Amount:</th>
                     <td>$836.00</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <th>Weeks Passed:</th>
                     <td>{weeksPassed} Weeks</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <th>Weeks Left:</th>
                     <td>{weeksLeft} Weeks</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <th>Time Passed:</th>
                     <td>{monthsPassed} Months, {extraDaysPassed} Days</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <th>Time Left:</th>
                     <td>{monthsLeft} Months, {extraDaysLeft} Days</td>
+                    <td></td>
                 </tr>
                 </tbody>
             </table>

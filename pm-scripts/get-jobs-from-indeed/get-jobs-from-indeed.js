@@ -3,56 +3,257 @@ import {execSync} from 'child_process';
 import dotenv from "dotenv";
 import fs from "fs";
 import sqlite3 from "sqlite3";
-import markdownService from "turndown";
 
 sqlite3.verbose();
 dotenv.config({path: `.env.${process.env.NODE_ENV ?? 'development'}`});
 
 // --- Constants ---
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]#\\]/g, "\\$&");
-}
-
-const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/PM/Areas/Job Search/Jobs/New';
-// const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
-const SEARCH_TERMS = ["PHP Developer"];
-const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
-const SKILLS_UNKNOWN = [".Net", "ASP.NET", "C#", "C++", "Drupal", "Flutter", "Golang", "Kotlin", "MS SQL", "MSSQL", "Next.js", "Spring", "Swift", "VB", "VB.Net", "Visual Basic", "Wordpress"].map(escapeRegExp);
-
 // const FROM_AGE = 'last'; // in days last, 1, 3
 const FROM_AGE = '1'; // in days last, 1, 3
+const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/PM/Areas/Job Search/Jobs/New';
+// const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
+const SEARCH_TERMS = ["AI Engineer"];
+const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
+const SKILLS_UNKNOWN = [".Net", "ASP.NET", "C#", "C++", "Drupal", "Flutter", "Golang", "Kotlin", "MS SQL", "MSSQL", "Next.js", "Spring", "Swift", "VB", "VB.Net", "Visual Basic", "Wordpress"].map(escapeRegExp);
 const VERIFICATION_TEXT = "Additional Verification Required";
 const EXPIRED_TEXT = "This job has expired on Indeed";
 const NEXT_PAGE_SELECTOR = 'a[data-testid="pagination-page-next"]';
 const JOB_CACHE_FILE = 'cache/jobsCacheIndeed.json';
-const PAUSE_IN_MS = 35000;
+const PAUSE_IN_MS = 10000;
+const INSERT_QUERY = `
+    INSERT INTO jobs (source, jk, title, company, search_query, salary_min, salary_max, link, post_html, status,
+                      date_posted, date_new, skills_known, skills_unknown)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-// const PAUSE_IN_MS = 3000;
+let newCacheList = [];
+let newJobList = loadCache();
+console.log("Loaded Cache:", newJobList.length, "jobs.", typeof newJobList);
+
+let browser = null;
+let browsersFirstTab = null;
+let databaseConnection = null;
+
+// --------------------------------------------------------------------- //
+console.log("DB_FILE",process.env.DB_FILE);
+databaseConnection = createDatabaseConnection(process.env.DB_FILE);
+
+// PHASE 1 :: Get all job keys for search terms
+try {
+    const existingJob = await fetchJobsFromDB(databaseConnection);
+    console.log("Existing Jobs in DB:", existingJob.length);
+
+    browser = await openChrome();
+    browsersFirstTab = BrowsersFirstTab(browser);
+
+    for (const [index, SEARCH_TERM] of SEARCH_TERMS.entries()) {
+        console.log(`Processing jobs for search term: "${SEARCH_TERM}" (${index + 1} of ${SEARCH_TERMS.length})`);
+        const url = `https://www.indeed.com/jobs?q=${encodeURIComponent(SEARCH_TERM)}&l=Remote&fromage=${FROM_AGE}`;
+        await browsersFirstTab.goto(url);
+        await pauseInMs(PAUSE_IN_MS);
+
+        await verificationRequiredCheck(browsersFirstTab);
+        const jobCountElement = await browsersFirstTab.$('.jobsearch-JobCountAndSortPane-jobCount');
+        const jobCountText = jobCountElement ? await jobCountElement.textContent() : '';
+        console.log(`Job Count: ${jobCountText}`);
+        const jobCount = parseInt(jobCountText.replace(/[^0-9]/g, ''), 10);
+        if (!jobCount || jobCount === 0) {
+            console.log(`No jobs found for search term: "${SEARCH_TERM}". Skipping to next term...`);
+            await pauseInMs(PAUSE_IN_MS);
+            continue;
+        }
+
+        let pageNumber = 0;
+        while (true) {
+            pageNumber++;
+            console.log(SEARCH_TERM, ": Page Number:", pageNumber);
+
+            const pageJobList = await getPageJobList(browsersFirstTab);
+            console.log("Page Job List:", pageJobList.length);
+
+            updateNewJobList(pageJobList, SEARCH_TERM);
+
+            if (!(await clickNextPageLink(browsersFirstTab))) {
+                break;
+            }
+            await pauseInMs(PAUSE_IN_MS);
+            await verificationRequiredCheck(browsersFirstTab);
+        }
+
+    }
+    console.log("New Jobs Found:", newJobList.length);
+} catch (error) {
+    console.error("Error:", error);
+}
+
+// PHASE 2 :: Get Job Details
+try {
+    let i = 0;
+    for (const newJob of newJobList) {
+        console.log("\n----------------------------------------");
+        console.log(++i, "of", newJobList.length, ":", newJob.jk, " - ", newJob.title);
+
+        const URL = newJob.link;
+        let jobData = {
+            title: '',
+            company: '',
+            salary_min: 0,
+            salary_max: 0,
+            post_html: '',
+            date_posted: null,
+        }
+
+        await browsersFirstTab.goto(URL);
+        await pauseInMs(PAUSE_IN_MS);
+        await verificationRequiredCheck(browsersFirstTab);
+
+        let hasValidLdJson = false;
+        const scriptTag = await browsersFirstTab.$('script[type="application/ld+json"]');
+        if (scriptTag) {
+            const jsonContent = await scriptTag.evaluate((el) => el.textContent.trim());
+            if (isValidJson(jsonContent)) {
+                hasValidLdJson = true;
+                console.log('Data From ld+json',jsonContent)
+                const jsonData = JSON.parse(jsonContent);
+                // "datePosted": "2025-04-01T00:37:00.966Z",
+                jobData.date_posted = jsonData.datePosted;
+                jobData.title = jsonData.title;
+                jobData.company = jsonData.hiringOrganization?.name;
+                jobData.salary_min = jsonData.baseSalary?.value?.minValue || null;
+                jobData.salary_max = jsonData.baseSalary?.value?.maxValue || null;
+                jobData.post_html = jsonData.description.replace(/\n/g, '').trim();
+                console.log('Job data from json', jobData);
+            }
+        }
+
+        if (!hasValidLdJson) {
+            let {salary_min, salary_max} = await getSalary();
+            jobData.title = await browsersFirstTab.textContent('h1[data-testid="jobsearch-JobInfoHeader-title"]');
+            jobData.company = await browsersFirstTab.textContent('div[data-testid="inlineHeader-companyName"]');
+            jobData.salary_min = salary_min ?? 0;
+            jobData.salary_max = salary_max ?? 0;
+            jobData.post_html = await browsersFirstTab.$eval('#jobDescriptionText', el => el.outerHTML);
+            console.log('Job data from HTML', jobData);
+        }
+
+        let newDBRecord = {
+            source: "Indeed",
+            jk: newJob.jk,
+            title: jobData.title,
+            company: jobData.company,
+            search_query: newJob.search_query,
+            salary_min: jobData.salary_min,
+            salary_max: jobData.salary_max,
+            link: newJob.link,
+            post_html: jobData.post_html,
+            status: "New",
+            date_posted: jobData.date_posted??null,
+            date_new: new Date().toISOString(),
+            skills_known: "",
+            // skills_unknown: "",
+        }
+        newDBRecord.post_html = highlightWords(newDBRecord.post_html);
+        newDBRecord.skills_known = getSkills(newDBRecord.post_html, SKILLS_KNOWN);
+        newDBRecord.skills_unknown = getSkills(newDBRecord.post_html, SKILLS_UNKNOWN);
+
+        if (newDBRecord.skills_known.length === 0 || newDBRecord.skills_unknown.length > 0) {
+            console.log("😔 Skipping Job", newDBRecord.skills_unknown.length, newDBRecord.skills_unknown);
+            removeJobFromCache(newJob.jk);
+            continue;
+        }
+
+        console.log("Saving to DB...", newDBRecord)
+        databaseConnection.run(
+            INSERT_QUERY,
+            [
+                newDBRecord.source,
+                newDBRecord.jk,
+                newDBRecord.title,
+                newDBRecord.company,
+                newDBRecord.search_query,
+                newDBRecord.salary_min,
+                newDBRecord.salary_max,
+                newDBRecord.link,
+                newDBRecord.post_html,
+                newDBRecord.status,
+                newDBRecord.date_posted,
+                newDBRecord.date_new,
+                newDBRecord.skills_known,
+                newDBRecord.skills_unknown,
+            ], function (err) {
+                if (err) {
+                    console.error("Error inserting into the database:", err);
+                    return;
+                }
+                console.log("DB ID:", this.lastID);
+                removeJobFromCache(newJob.jk);
+            }
+        );
+    }
+    await browser.close();
+    process.exit(1);
+} catch (error) {
+    console.error("Error:", error);
+}
+
+
+//-------------------------------------------------------//
+function createDatabaseConnection(dbPath) {
+    return new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+            console.error("Database connection failed:", err);
+            process.exit(1);
+        }
+    });
+}
+
+async function fetchJobsFromDB(db) {
+    const query = `SELECT jk, search_query
+                   FROM jobs
+                   WHERE source = 'Indeed'`;
+    return new Promise((resolve, reject) => {
+        db.all(query, [], (err, rows) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(rows);
+        });
+    });
+}
+
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]#\\]/g, "\\$&");
+}
 
 async function openChrome() {
-    // Change "Default" to the desired profile directory name
-    // const profile = "_Home_";
     const profile = "Profile 1";
     const url = "https://www.indeed.com";
     const remoteDebuggingPort = 9222;
 
+    function closeChromeIfOpen() {
+        try {
+            execSync(`pkill -f "Google Chrome"`);
+            console.log("Closed existing Chrome instances.");
+        } catch (error) {
+            console.log("No existing Chrome instances were running.");
+        }
+    }
+
+    closeChromeIfOpen();
     execSync(`open -na "Google Chrome" --args --remote-debugging-port=${remoteDebuggingPort} --profile-directory="${profile}" ${url}`);
-    console.log("Waiting for Chrome to launch...");
+    console.log("Pause while Chrome starts up and connects to the remote debugger...");
     await new Promise(resolve => setTimeout(resolve, 10000));
 
     return await chromium.connectOverCDP(`http://127.0.0.1:${remoteDebuggingPort}`);
 }
 
-const browser = await openChrome();
 
 function BrowsersFirstTab(browser) {
     return browser.contexts()[0].pages()[0];
 }
 
-const browsersFirstTab = BrowsersFirstTab(browser);
-let newCacheList = [];
+// const browsersFirstTab = BrowsersFirstTab(browser);
 
-// Load Cache
 function loadCache() {
     if (fs.existsSync(JOB_CACHE_FILE)) {
         try {
@@ -67,9 +268,6 @@ function loadCache() {
         return [];
     }
 }
-
-let newJobList = loadCache();
-console.log("Loaded Cache:", newJobList.length, "jobs.");
 
 // Get each Job IDs for each search term
 for (const [index, SEARCH_TERM] of SEARCH_TERMS.entries()) {
@@ -97,7 +295,6 @@ for (const [index, SEARCH_TERM] of SEARCH_TERMS.entries()) {
             console.log("Verification required. Retrying...");
             await pauseInMs(3000); // Pause a bit before retrying to avoid excessive page requests.
         }
-        // await verificationRequiredCheck(browsersFirstTab);
         await simulateUserWindowScroll(browsersFirstTab);
         const pageJobList = await getPageJobList(browsersFirstTab);
         updateNewJobList(pageJobList, SEARCH_TERM);
@@ -289,11 +486,8 @@ async function pauseInMs(pauseInMs) {
 async function verificationRequiredCheck(page) {
     if (await page.evaluate((text) => document.body.innerText.includes(text), VERIFICATION_TEXT)) {
         console.log('!! ' + VERIFICATION_TEXT);
-        await page.click('input[type="checkbox"]');
-        await pauseInMs(3000)
-        return true
-        // await browser.close();
-        // process.exit(1);
+        await browser.close();
+        process.exit(1);
     }
 
     return false;
@@ -340,12 +534,6 @@ function updateNewJobList(pageJobList, searchTerm) {
         total: pageJobList.length, new: 0, updated: 0, exciting: 0, unChanged: 0,
     };
     pageJobList.forEach(pageJob => {
-        // @TODO Read exciting jobs somehow
-        // const excitingJob = existingJob.find(job => job.jk === pageJob.jk);
-        // if (excitingJob) {
-        //     pageStats.exciting++;
-        //     return;
-        // }
 
         const repeatedJob = newJobList.find(job => job.jk === pageJob.jk);
         if (!repeatedJob) {

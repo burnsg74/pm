@@ -1,11 +1,9 @@
 import styles from './Footer.module.css';
 import React, { useState, useEffect } from 'react';
-import {useDispatch, useSelector} from "react-redux";
 
 const Footer = () => {
     const [time, setTime] = useState('');
     const [timeUntil2PM, setTimeUntil2PM] = useState('');
-    const counters = useSelector((state) => state.jobCounters.counters);
 
     useEffect(() => {
         const updateElapsedTime = () => {
@@ -60,14 +58,9 @@ const Footer = () => {
                     {time}
                 </div>
                 <div className={`${styles.column} ${styles.center}`}>
-                    {/* TODO: Current and next tasks */}
                 </div>
                 <div className={`${styles.column} ${styles.right}`}>
-                    {timeUntil2PM} |
-                    <span> {counters.new} new </span>
-                    <span> {counters.applied} applied </span>
-                    <span> {counters.rejected} rejected </span>
-                    <span> {counters.deleted} deleted </span>
+                    {timeUntil2PM}
                 </div>
             </div>
         </footer>

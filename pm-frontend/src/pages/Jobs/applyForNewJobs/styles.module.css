@@ -3,14 +3,14 @@
     border-collapse: collapse;
     border-bottom: 1px solid #d0d0d0;
 }
-.frontMatterTable th, td {
+.frontMatterTable th {
     padding: 8px;
     white-space: nowrap;
     border: none;
-    text-align:left;
+    text-align:right;
 }
 .frontMatterTable td {
-    text-align:right;
+    text-align:left;
 }
 
 .jobPostHtml {
@@ -47,4 +47,31 @@
 .aLink {
     text-decoration: none;
     color: #001d9e;
+}
+
+.applyButton {
+    background-color: #28a745;
+    color: white;
+    border-radius: 4px;
+    padding: 6px 12px;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.deleteButton {
+    background-color: #dc3545;
+    color: white;
+    border-radius: 4px;
+    padding: 6px 12px;
+    border: none;
+    cursor: pointer;
+}
+
+.applyButton:hover {
+    background-color: #218838;
+}
+
+.deleteButton:hover {
+    background-color: #c82333;
 }

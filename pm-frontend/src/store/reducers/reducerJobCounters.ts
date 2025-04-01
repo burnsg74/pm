@@ -1,4 +1,6 @@
-interface JobCounters {
+import { SET_ALL_JOB_COUNTERS } from "../store";
+
+export interface JobCounters {
     new: number;
     applied: number;
     deleted: number;
@@ -11,28 +13,6 @@ interface JobCounters {
 
 interface JobCountersState {
     counters: JobCounters;
-}
-
-const initialState: JobCountersState = {
-    counters: {
-        new: 0,
-        applied: 0,
-        deleted: 0,
-        rejected: 0,
-        accepted: 0,
-        interview: 0,
-        offer: 0,
-        hired: 0,
-    },
-};
-
-const SET_ALL_COUNTERS = 'SET_ALL_COUNTERS';
-const INCREMENT_COUNTER = 'INCREMENT_COUNTER';
-const DECREMENT_COUNTER = 'DECREMENT_COUNTER';
-
-interface SetAllCountersAction {
-    type: typeof SET_ALL_COUNTERS;
-    payload: Partial<JobCounters>;
 }
 
 interface IncrementCounterAction {
@@ -49,7 +29,28 @@ interface DecrementCounterAction {
     };
 }
 
+interface SetAllCountersAction {
+    type: typeof SET_ALL_JOB_COUNTERS;
+    payload: Partial<JobCounters>;
+}
+
 type JobCountersActions = SetAllCountersAction | IncrementCounterAction | DecrementCounterAction;
+
+const initialState: JobCountersState = {
+    counters: {
+        new: 0,
+        applied: 0,
+        deleted: 0,
+        rejected: 0,
+        accepted: 0,
+        interview: 0,
+        offer: 0,
+        hired: 0,
+    },
+};
+
+const INCREMENT_COUNTER = 'INCREMENT_COUNTER';
+const DECREMENT_COUNTER = 'DECREMENT_COUNTER';
 
 // Reducer function with type annotations
 const reducerJobCounters = (
@@ -57,7 +58,7 @@ const reducerJobCounters = (
     action: JobCountersActions
 ): JobCountersState => {
     switch (action.type) {
-        case 'SET_ALL_COUNTERS':
+        case 'SET_ALL_JOB_COUNTERS':
             return {
                 ...state,
                 counters: {
