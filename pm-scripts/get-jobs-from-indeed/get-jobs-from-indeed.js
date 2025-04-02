@@ -2,15 +2,24 @@ import {chromium} from "@playwright/test";
 import {execSync} from 'child_process';
 import dotenv from "dotenv";
 import fs from "fs";
+import path from "node:path";
 import sqlite3 from "sqlite3";
+import matter from 'gray-matter';
+import TurndownService from "turndown";
+
 
 sqlite3.verbose();
 dotenv.config({path: `.env.${process.env.NODE_ENV ?? 'development'}`});
 
+// NOTEBOOK='~/Library/CloudStorage/Dropbox/Work'
+// Job folder: NOTEBOOK + /Areas/Job Search/Jobs
+// /Users/greg/Library/CloudStorage/Dropbox/Work/Areas/Job Search/Jobs
+
 // --- Constants ---
 // const FROM_AGE = 'last'; // in days last, 1, 3
 const FROM_AGE = '1'; // in days last, 1, 3
-const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/PM/Areas/Job Search/Jobs/New';
+const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Work/Areas/Job Search/Jobs';
+const STATUSES = ['New', 'Pending', 'Applied', 'Rejected', 'Interview', 'Deleted'];
 // const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
 const SEARCH_TERMS = ["AI Engineer"];
 const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
@@ -20,27 +29,21 @@ const EXPIRED_TEXT = "This job has expired on Indeed";
 const NEXT_PAGE_SELECTOR = 'a[data-testid="pagination-page-next"]';
 const JOB_CACHE_FILE = 'cache/jobsCacheIndeed.json';
 const PAUSE_IN_MS = 10000;
-const INSERT_QUERY = `
-    INSERT INTO jobs (source, jk, title, company, search_query, salary_min, salary_max, link, post_html, status,
-                      date_posted, date_new, skills_known, skills_unknown)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+const turndownService = new TurndownService();
 
 let newCacheList = [];
 let newJobList = loadCache();
-console.log("Loaded Cache:", newJobList.length, "jobs.", typeof newJobList);
-
 let browser = null;
 let browsersFirstTab = null;
-let databaseConnection = null;
 
 // --------------------------------------------------------------------- //
-console.log("DB_FILE",process.env.DB_FILE);
-databaseConnection = createDatabaseConnection(process.env.DB_FILE);
+console.log("Loaded Cache:", newJobList.length, "jobs.", typeof newJobList);
 
 // PHASE 1 :: Get all job keys for search terms
 try {
-    const existingJob = await fetchJobsFromDB(databaseConnection);
-    console.log("Existing Jobs in DB:", existingJob.length);
+    const existingJobKeys = await getExistingJobKeys();
+    console.log("Existing Jobs in DB:", existingJobKeys.length, existingJobKeys);
 
     browser = await openChrome();
     browsersFirstTab = BrowsersFirstTab(browser);
@@ -112,9 +115,8 @@ try {
             const jsonContent = await scriptTag.evaluate((el) => el.textContent.trim());
             if (isValidJson(jsonContent)) {
                 hasValidLdJson = true;
-                console.log('Data From ld+json',jsonContent)
+                console.log('Data From ld+json', jsonContent)
                 const jsonData = JSON.parse(jsonContent);
-                // "datePosted": "2025-04-01T00:37:00.966Z",
                 jobData.date_posted = jsonData.datePosted;
                 jobData.title = jsonData.title;
                 jobData.company = jsonData.hiringOrganization?.name;
@@ -135,7 +137,7 @@ try {
             console.log('Job data from HTML', jobData);
         }
 
-        let newDBRecord = {
+        let frontMatterData = {
             source: "Indeed",
             jk: newJob.jk,
             title: jobData.title,
@@ -144,50 +146,30 @@ try {
             salary_min: jobData.salary_min,
             salary_max: jobData.salary_max,
             link: newJob.link,
-            post_html: jobData.post_html,
             status: "New",
-            date_posted: jobData.date_posted??null,
+            date_posted: jobData.date_posted ?? null,
             date_new: new Date().toISOString(),
             skills_known: "",
-            // skills_unknown: "",
         }
-        newDBRecord.post_html = highlightWords(newDBRecord.post_html);
-        newDBRecord.skills_known = getSkills(newDBRecord.post_html, SKILLS_KNOWN);
-        newDBRecord.skills_unknown = getSkills(newDBRecord.post_html, SKILLS_UNKNOWN);
+        // newDBRecord.post_html = highlightWords(newDBRecord.post_html);
+        frontMatterData.skills_known = getSkills(jobData.post_html, SKILLS_KNOWN);
+        console.log("Skills skills_known:", jobData.skills_known);
+        let skills_unknown = getSkills(jobData.post_html, SKILLS_UNKNOWN);
+        console.log("Skills Unknown:", skills_unknown);
+        // if (skills_unknown.length === 0 || skills_unknown.length > 0) {
+        //     console.log("😔 Skipping Job", skills_unknown.length, skills_unknown);
+        //     removeJobFromCache(newJob.jk);
+        //     continue;
+        // }
 
-        if (newDBRecord.skills_known.length === 0 || newDBRecord.skills_unknown.length > 0) {
-            console.log("😔 Skipping Job", newDBRecord.skills_unknown.length, newDBRecord.skills_unknown);
-            removeJobFromCache(newJob.jk);
-            continue;
-        }
+        const markdownBody = turndownService.turndown(jobData.post_html);
+        const fileContents = matter.stringify(markdownBody, frontMatterData);
+        const safeCompany = frontMatterData.company.replace(/\s+/g, '_');
+        const safeTitle = frontMatterData.title.replace(/\s+/g, '_');
+        const filePath = path.join(PROJECT_PATH, `Job-${safeCompany}-${safeTitle}.md`);
 
-        console.log("Saving to DB...", newDBRecord)
-        databaseConnection.run(
-            INSERT_QUERY,
-            [
-                newDBRecord.source,
-                newDBRecord.jk,
-                newDBRecord.title,
-                newDBRecord.company,
-                newDBRecord.search_query,
-                newDBRecord.salary_min,
-                newDBRecord.salary_max,
-                newDBRecord.link,
-                newDBRecord.post_html,
-                newDBRecord.status,
-                newDBRecord.date_posted,
-                newDBRecord.date_new,
-                newDBRecord.skills_known,
-                newDBRecord.skills_unknown,
-            ], function (err) {
-                if (err) {
-                    console.error("Error inserting into the database:", err);
-                    return;
-                }
-                console.log("DB ID:", this.lastID);
-                removeJobFromCache(newJob.jk);
-            }
-        );
+        fs.writeFileSync(filePath, fileContents, "utf8");
+        console.log("Markdown file saved at:", filePath);
     }
     await browser.close();
     process.exit(1);
@@ -197,27 +179,21 @@ try {
 
 
 //-------------------------------------------------------//
-function createDatabaseConnection(dbPath) {
-    return new sqlite3.Database(dbPath, (err) => {
-        if (err) {
-            console.error("Database connection failed:", err);
-            process.exit(1);
-        }
-    });
-}
-
-async function fetchJobsFromDB(db) {
-    const query = `SELECT jk, search_query
-                   FROM jobs
-                   WHERE source = 'Indeed'`;
-    return new Promise((resolve, reject) => {
-        db.all(query, [], (err, rows) => {
-            if (err) {
-                reject(err);
+async function getExistingJobKeys() {
+    const existingJobKeys = [];
+        const files = fs.readdirSync(PROJECT_PATH);
+        for (const file of files) {
+            console.log(file);
+            if (file.endsWith(".md")) {
+                const fileContent = fs.readFileSync(path.join(PROJECT_PATH, file), 'utf8');
+                console.log(fileContent);
+                const {data} = matter(fileContent);
+                if (data && data.jk) {
+                    existingJobKeys.push(data.jk);
+                }
             }
-            resolve(rows);
-        });
-    });
+        }
+    return existingJobKeys;
 }
 
 

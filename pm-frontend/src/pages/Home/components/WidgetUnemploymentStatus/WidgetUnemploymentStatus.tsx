@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
-import Card from "../Card/Card.jsx";
+import Card from 'react-bootstrap/Card';
 import GaugeChart from "./components/GaugeChart/GaugeChart.jsx";
 import styles from "./styles.module.css";
-
+import Table from 'react-bootstrap/Table';
 
 const WidgetUnemploymentStatus = () => {
     const MILLISECONDS_IN_ONE_DAY = 1000 * 60 * 60 * 24; // ms in secs * secs in min * min in hours * hours in days
@@ -42,42 +42,39 @@ const WidgetUnemploymentStatus = () => {
     }, []);
 
     return (
-        <Card title={"Unemployment Status"}>
-            <GaugeChart percentLeft={percentLeft}/>
-            <table className={`${styles.cardTable}`}>
-                <tbody>
-                <tr>
-                    <th>Dates:</th>
-                    <td>01-Dec-2024 to 29-Nov-2025</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <th>Amount:</th>
-                    <td>$836.00</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <th>Weeks Passed:</th>
-                    <td>{weeksPassed} Weeks</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <th>Weeks Left:</th>
-                    <td>{weeksLeft} Weeks</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <th>Time Passed:</th>
-                    <td>{monthsPassed} Months, {extraDaysPassed} Days</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <th>Time Left:</th>
-                    <td>{monthsLeft} Months, {extraDaysLeft} Days</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
+        <Card>
+            <Card.Header as="h5">Unemployment Status</Card.Header>
+            <Card.Body>
+                <GaugeChart percentLeft={percentLeft}/>
+                <Table className={`${styles.cardTable}`} bordered hover size="sm">
+                    <tbody>
+                    <tr>
+                        <th>Dates:</th>
+                        <td>01-Dec-2024 to 29-Nov-2025</td>
+                    </tr>
+                    <tr>
+                        <th>Amount:</th>
+                        <td>$836.00</td>
+                    </tr>
+                    <tr>
+                        <th>Weeks Passed:</th>
+                        <td>{weeksPassed} Weeks</td>
+                    </tr>
+                    <tr>
+                        <th>Weeks Left:</th>
+                        <td>{weeksLeft} Weeks</td>
+                    </tr>
+                    <tr>
+                        <th>Time Passed:</th>
+                        <td>{monthsPassed} Months, {extraDaysPassed} Days</td>
+                    </tr>
+                    <tr>
+                        <th>Time Left:</th>
+                        <td>{monthsLeft} Months, {extraDaysLeft} Days</td>
+                    </tr>
+                    </tbody>
+                </Table>
+            </Card.Body>
         </Card>
     );
 };

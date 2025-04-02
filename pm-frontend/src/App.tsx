@@ -6,74 +6,35 @@ import Home from "./pages/Home/Home";
 import {useEffect} from "react";
 import {useDispatch} from "react-redux";
 import type { JobCounters} from "./store/reducers/reducerJobCounters";
-import type { TaskCounters } from "./store/reducers/reducerTaskCounters";
 import Kanban from "./pages/Kanban/Kanban";
 import Calendar from "./pages/Calendar/Calendar";
-import { SET_ALL_TASK_COUNTERS, SET_ALL_JOB_COUNTERS } from "./store/store";
-
-interface JobCounterApiResponse {
-    status: keyof JobCounters;
-    count: number;
-}
+import { SET_ALL_JOB_COUNTERS } from "./store/store";
+import PageJobsGrid from "./pages/Jobs/Grid/PageJobsGrid";
+import PageReviewNewJobs from "./pages/Jobs/reviewNewJobs/PageReviewNewJobs";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const App = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const fetchTaskCounters = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/db`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        query: "SELECT status, COUNT(*) as count FROM tasks GROUP BY status",
-                    }),
-                });
-
-                if (!response.ok) {
-                    console.error(response);
-                }
-
-                const data: { status: string; count: number }[] = await response.json();
-
-                const counters = data.reduce((acc: Partial<TaskCounters>, item: { status: string; count: number }) => {
-                    const statusKey = item.status as keyof TaskCounters;
-                    acc[statusKey] = item.count;
-                    return acc;
-                }, {});
-
-                dispatch({
-                    type: SET_ALL_TASK_COUNTERS,
-                    payload: counters,
-                });
-            } catch (error) {
-                console.error("Error fetching task counters:", error);
-            }
-        };
-
         const fetchJobCounters = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/db`, {
-                    method: "POST",
+                const response = await fetch(`${API_BASE_URL}/api/job/get-job-counters`, {
+                    method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        query: "SELECT status, COUNT(*) as count FROM jobs GROUP BY status",
-                    }),
                 });
 
                 if (!response.ok) {
                     console.error(response);
+                    return;
                 }
-                const data: JobCounterApiResponse[] = await response.json();
 
-                const counters = data.reduce((acc: Partial<JobCounters>, item: JobCounterApiResponse) => {
-                    const statusKey = item.status.toLowerCase() as keyof JobCounters;
-                    acc[statusKey] = item.count;
+                const data: Record<string, number> = await response.json();
+                const counters = Object.entries(data).reduce((acc: Partial<JobCounters>, [status, count]) => {
+                    const statusKey = status.toLowerCase() as keyof JobCounters;
+                    acc[statusKey] = count;
                     return acc;
                 }, {});
 
@@ -82,11 +43,11 @@ const App = () => {
                     payload: counters,
                 });
             } catch (error) {
-                console.error("Error fetching task counters:", error);
+                console.error("Error fetching counters:", error);
             }
         };
 
-        fetchTaskCounters().then();
+        // fetchTaskCounters().then();
         fetchJobCounters().then();
     }, [dispatch]);
 
@@ -97,6 +58,9 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/jobs" element={<PageJobs/>}/>
+                    <Route path="/jobs/grid" element={<PageJobsGrid/>}/>
+                    <Route path="/jobs/PageJobsGrid" element={<PageJobsGrid/>}/>
+                    <Route path="/jobs/review-new-jobs" element={<PageReviewNewJobs />}/>
                     <Route path="/jobs/apply-for-new-jobs" element={<PageApplyForNewJobs />}/>
                     <Route path="/kanban" element={<Kanban/>}/>
                     <Route path="/calendar" element={<Calendar/>}/>

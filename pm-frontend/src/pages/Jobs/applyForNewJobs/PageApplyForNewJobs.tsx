@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import styles from "./styles.module.css";
 import {Breadcrumb} from 'react-bootstrap';
 import {Link} from "react-router-dom";
+import {marked} from 'marked';
 
 interface Job {
     id?: number;
@@ -13,7 +14,8 @@ interface Job {
     salary_min?: number;
     salary_max?: number;
     link?: string;
-    post_html: string;
+    content: string;
+    html: string;
     notes?: string;
     status: "New" | "Applied" | "Deleted";
     date_posted?: string;
@@ -41,9 +43,9 @@ export default () => {
         });
     };
 
-    async function UpdateJob(job: Job): Promise<Job> {
+    async function updateJob(job: Job): Promise<Job> {
         const response = await fetch(`${API_BASE_URL}/api/job`, {
-            method: "POST",
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -54,18 +56,19 @@ export default () => {
 
     useEffect(() => {
         async function fetchData() {
-            const response = await fetch(`${API_BASE_URL}/api/db`, {
-                method: "POST",
+            // /api/job/get-job-new
+            const response = await fetch(`${API_BASE_URL}/api/job/get-job-new`, {
+                method: "GET",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    query: "SELECT * FROM jobs WHERE status = 'New'",
-                }),
             });
-            return response.json();
+            const jobsData = await response.json();
+            return jobsData.map((job: Job) => ({
+                ...job,
+                html: marked(job.content),
+            }));
         }
-
 
         fetchData()
             .then((data) => {
@@ -79,30 +82,16 @@ export default () => {
     }, []);
 
     const handleAppliedClick = async () => {
-        if (currentJob && currentJob.id) {
-            const query = `
-            UPDATE jobs
-            SET status = 'Applied', date_applied = '${new Date().toISOString()}'
-            WHERE id = ${currentJob.id};
-        `;
-
+        if (!currentJob) return;
+        console.log("Applying for job:", currentJob);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/db`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ query }),
-                });
-
-                // const result = await response.json();
-                // console.log("Database updated (Applied):", result);
+                currentJob.status = "Applied";
+                await updateJob(currentJob);
 
                 setJobs(prevJobs => {
-                    const jobIndex = prevJobs.findIndex(job => job.id === currentJob?.id);
-                    const updatedJobs = prevJobs.filter(job => job.id !== currentJob?.id);
+                    const jobIndex = prevJobs.findIndex(job => job.id === currentJob.id);
+                    const updatedJobs = prevJobs.filter(job => job.id !== currentJob.id);
 
-                    // Set the currentJob to the next job, or null if there are no more jobs
                     setCurrentJob(updatedJobs[jobIndex] || updatedJobs[0] || null);
 
                     return updatedJobs;
@@ -111,7 +100,6 @@ export default () => {
             } catch (error) {
                 console.error("Error updating status (Applied):", error);
             }
-        }
     };
 
     const handleDeletedClick = async () => {
@@ -221,10 +209,10 @@ export default () => {
                     </button>
                 </>
             )}
-            {currentJob?.post_html && (
+            {currentJob?.html && (
                 <div
                     className={`${styles.jobPostHtml}`}
-                    dangerouslySetInnerHTML={{__html: currentJob.post_html}}
+                    dangerouslySetInnerHTML={{__html: currentJob.html}}
                 />
             )}
         </div>

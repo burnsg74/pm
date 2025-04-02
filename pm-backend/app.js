@@ -10,14 +10,157 @@ const {marked} = require('marked');
 const grayMatter = require('gray-matter');
 const app = express();
 const port = process.env.PORT || 5174;
-const JOBS_NEW_PATH = process.env.JOBS_DIR ||
-    '/Users/greg/Library/CloudStorage/Dropbox/PM/Areas/Job Search/Jobs';
-
+const JOBS_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Work/Areas/Job Search/Jobs';
 
 dotenv.config();
 app.use(cors());
 app.use(express.json());
 sqlite3.verbose();
+
+app.get('/api/job/get-job-counters', async (req, res) => {
+    const counters = {
+        New: 0,
+        Pending: 0,
+        Applied: 0,
+        Deleted: 0,
+        Rejected: 0,
+        Interview: 0,
+    };
+    console.log('Reading jobs directory:', JOBS_PATH);
+    try {
+        const files = await fs.readdir(JOBS_PATH);
+        for (const file of files) {
+            if (file.endsWith(".md")) {
+                const fileContent = await fs.readFile(path.join(JOBS_PATH, file), 'utf8');
+                const {data} = grayMatter(fileContent);
+                if (data && data.status) {
+                    counters[data.status]++;
+                }
+            }
+        }
+        res.status(200).send(counters);
+    } catch (error) {
+        console.error("Error reading files:", error);
+        res.status(500).send('Server Error');
+    }
+
+});
+
+
+app.get('/api/job/get-job-list', async (req, res) => {
+    try {
+        const files = await fs.readdir(JOBS_PATH);
+        let jobs = [];
+        for (const file of files) {
+            if (file.endsWith(".md")) {
+                const fileContent = await fs.readFile(path.join(JOBS_PATH, file), 'utf8');
+                const {data} = grayMatter(fileContent);
+                let job = {
+                    source: data.source,
+                    company: data.company,
+                    title: data.title,
+                    link: data.link,
+                    status: data.status,
+                    date_new: data.date_new,
+                    date_applied: data.date_applied,
+                    date_deleted: data.date_deleted,
+                }
+                jobs.push(job);
+            }
+        }
+        res.status(200).send(jobs);
+    } catch (error) {
+        console.error("Error reading files:", error);
+        res.status(500).send('Server Error');
+    }
+
+});
+
+app.get('/api/job/get-job-new', async (req, res) => {
+    try {
+        const files = await fs.readdir(JOBS_PATH);
+        let jobs = [];
+        for (const file of files) {
+            if (file.endsWith(".md")) {
+                const fileStat = await fs.stat(path.join(JOBS_PATH, file));
+                const fileContent = await fs.readFile(path.join(JOBS_PATH, file), 'utf8');
+                const {data, content} = grayMatter(fileContent);
+
+                if (data && data.status) {
+                    if (data.status !== 'New') {
+                        continue;
+                    }
+                    data.id = fileStat.ino;
+                    data.file_path = path.join(JOBS_PATH, file);
+                    data.content = content;
+                    jobs.push(data);
+                }
+            }
+        }
+        res.status(200).send(jobs);
+    } catch (error) {
+        console.error("Error reading files:", error);
+        res.status(500).send('Server Error');
+    }
+
+});
+
+// /api/job
+app.put('/api/job/', async (req, res) => {
+    try {
+        const job = req.body;
+        console.log(job, typeof job);
+
+        // Save to markdown file `job.file_path` job.content as body, remove job.html, convert others as yaml front matter using grayMatter
+
+        if (!job || !job.file_path || !job.content) {
+            res.status(400).send('Invalid job data');
+            return;
+        }
+
+        try {
+            // Remove `html` key from job, if it exists
+            if ('html' in job) {
+                delete job.html;
+            }
+
+            // Separate out content and front matter
+            const yamlData = {};
+            for (const key in job) {
+                if (key !== 'content' && key !== 'file_path') {
+                    yamlData[key] = job[key];
+                }
+            }
+
+            // Use grayMatter to format data as YAML front matter
+            const fileContent = grayMatter.stringify(job.content, yamlData);
+
+            // Write the content back to the specified file
+            await fs.writeFile(job.file_path, fileContent, 'utf8');
+            res.status(200).send(job);
+        } catch (error) {
+            console.error('Error saving job:', error);
+            res.status(500).send(error);
+        }
+
+        // const files = await fs.readdir(JOBS_PATH);
+        // let jobs = [];
+        // for (const file of files) {
+        //     if (file.endsWith(".md")) {
+        //         const fileContent = await fs.readFile(path.join(JOBS_PATH, file), 'utf8');
+        //         const {data, content} = grayMatter(fileContent);
+        //         data.content = content;
+        //         jobs.push(data);
+        //     }
+        // }
+        res.status(200).send();
+    } catch (error) {
+        console.error("Error reading files:", error);
+        res.status(500).send('Server Error');
+    }
+
+});
+
 
 const dbPath = process.env.NODE_ENV === 'production' ? process.env.DB_PATH_PROD : process.env.DB_PATH_DEV;
 const db = new sqlite3.Database(dbPath, (err) => {

@@ -8,7 +8,30 @@
     --main-background-color: #F5F7FA;
     --nav-background-color:#F7F8FA;
     --nav-color: #252525;
+    --ag-icon-font-family: "agGridMaterial";
 }
+
+@font-face {
+    font-family: 'AG Grid Icons';
+    src: url('https://unpkg.com/ag-grid-community/styles/ag-grid-icons.woff2') format('woff2'),
+    url('https://unpkg.com/ag-grid-community/styles/ag-grid-icons.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.ag-theme-quartz {
+    --ag-icon-font-family: 'AG Grid Icons';
+    --ag-font-size: 14px;
+    --ag-font-family: Arial, sans-serif;
+
+}
+
+.ag-theme-quartz .ag-header-cell {
+    background-color: #f4f6fa;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
 
 /* Normalize styles by resetting default browser styles */
 *,
