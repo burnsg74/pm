@@ -1,0 +1,193 @@
+.container {
+    margin: 20px;
+}
+
+.Header {
+    margin-bottom: 20px;
+}
+
+.viewContainer {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-top-right-radius: 8px;
+    overflow: hidden;
+}
+
+.jobSearchTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+.jobSearchTable thead th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.jobSearchTable th {
+    background-color: #2c3e50;
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+
+}
+
+.jobSearchTable td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.jobSearchTable tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.jobSearchTable tbody tr:hover {
+    background-color: #f2f5fa;
+}
+
+@media only screen and (max-width: 768px) {
+    .jobSearchTable {
+        font-size: 14px;
+    }
+
+    .jobSearchTable th, .jobSearchTable td {
+        padding: 8px 10px;
+    }
+}
+
+.jobSearchTable a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.jobSearchTable a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb {
+    list-style: none;
+    display: flex;
+    padding: 10px 20px;
+}
+
+.breadcrumb li {
+    margin-right: 5px;
+}
+
+.breadcrumb li:not(:last-child)::after {
+    content: "/";
+    margin-left: 5px;
+    color: #868686;
+}
+
+.breadcrumb li a {
+    text-decoration: none;
+    color: #0066cc;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb li a:hover {
+    color: #004499;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 20px;
+    background-color: #FFF;
+    font-size: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-status {
+    display: flex;
+    gap: 15px;
+    font-weight: 500;
+}
+
+.views {
+    display: flex;
+    margin-left: 1px;
+}
+
+.views span {
+    padding: 8px 16px;
+    margin-right: 8px;
+    cursor: pointer;
+    border: 1px solid #2c3e50;
+    border-bottom: none;
+    background-color: #f0f0f0;
+    border-radius: 5px 5px 0 0;
+}
+
+.views span:hover {
+    background-color: #e0e0e0;
+}
+
+.views span.active {
+    background-color: #fff;
+    font-weight: bold;
+}
+
+.detailsContainer {
+    padding: 10px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.detailsContainer .twoColumnLayout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.detailsContainer li:last-child {
+    border-bottom: none;
+}
+
+.detailHeader {
+    background-color: #2c3e50;
+    color: white;
+    padding: 12px 15px;
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+}
+
+.knowSkills {
+    display: flex;
+    color: darkgreen;
+    font-size: 1.1em;
+    margin: 5px 20px
+}
+
+.detailHeader {
+    position: relative; /* Add this to the parent element */
+}
+
+.detailHeader span {
+    position: absolute;
+    right: 0;
+    margin-right: 10px;
+}
+
+.leftColumn ul {
+    margin-inline-start: 20px;
+}
+
+.activeLink {
+    font-weight: bold;
+}
+
+
+.selectedRow {
+    background-color: #f0f8ff;
+    font-weight: bold;
+    border: 2px solid #007bff;
+    border-radius: 4px;
+}

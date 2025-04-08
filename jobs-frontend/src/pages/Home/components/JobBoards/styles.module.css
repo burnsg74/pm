@@ -1,0 +1,21 @@
+
+
+.jobBoardLinks {
+    list-style-type: decimal;
+    padding-left: 24px;
+}
+
+.jobBoardLinks li {
+    padding: 8px 0;
+}
+
+.jobBoardLinks a {
+    text-decoration: none;
+    color: #4a90e2;
+    transition: color 0.3s ease;
+}
+
+.jobBoardLinks a:hover {
+    color: #1f68c1;
+    text-decoration: underline;
+}

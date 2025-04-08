@@ -1,0 +1,42 @@
+.twoColumnLayout {
+    display: flex;
+    gap: 20px;
+}
+
+.leftColumn,
+.rightColumn {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.leftColumn {
+    flex: 2;
+}
+
+.rightColumn {
+    flex: 1;
+}
+
+.rightColumn ul {
+    list-style: none;
+    padding: 0;
+}
+
+.rightColumn ul li {
+    margin-bottom: 10px;
+}
+
+h2 {
+    margin-bottom: 15px;
+    border-bottom: 2px solid #ececec;
+    padding-bottom: 8px;
+}
+
+.highlight-green {
+    background-color: #e7f6e7;
+    color: #228b22;
+    border-radius: 4px;
+    padding: 0 4px;
+}

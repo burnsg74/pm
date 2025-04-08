@@ -1,0 +1,9 @@
+{
+  "name": "jobs-ws",
+  "version": "1.0.0",
+  "description": "Jobs Websocket",
+  "main": "websocket-server.js",
+  "dependencies": {
+    "ws": "^8.18.1"
+  }
+}

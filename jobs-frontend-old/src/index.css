@@ -1,0 +1,70 @@
+@charset "UTF-8";
+
+/* Theme Default Light, Dark */
+:root {
+    --nav-border-color: #cbd0dd;
+    --navbar-vertical-border-color: #cbd0dd;
+    --top-nav-height: 1.7rem;
+    --main-background-color: #F5F7FA;
+    --nav-background-color:#F7F8FA;
+    --nav-color: #252525;
+}
+
+html, body, #root, main {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: var(--main-background-color);
+    color: var(--nav-color);
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+    font-weight: normal;
+}
+
+button {
+    border: none;
+    outline: none;
+    background: none;
+    cursor: pointer;
+}
+
+main {
+    background-color: var(--main-background-color);
+}
+
+h2 {
+    margin: 0;
+}
+
+.highlight-green {
+    background-color: #84ff00;
+    border-radius: 5px;
+    padding: 0 4px 4px;
+    box-shadow: #62ba04 0 0 2px;
+}
