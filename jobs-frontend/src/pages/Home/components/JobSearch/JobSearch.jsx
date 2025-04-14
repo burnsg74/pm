@@ -8,7 +8,9 @@ const JobSearch = () => {
     const [jobsCounters, setJobsCounters] = useState({
         New: 0,
         Applied: 0,
-        Saved:0
+        Saved:0,
+        Deleted:0,
+        Unknown:0,
     })
     useEffect(() => {
         const fetchJobs = async () => {
@@ -52,6 +54,14 @@ const JobSearch = () => {
                         <tr>
                             <th><Link to={'/jobs/Applied'}>Applied : </Link></th>
                             <td> {jobsCounters.Applied} </td>
+                        </tr>
+                        <tr>
+                            <th>Deleted :</th>
+                            <td> {jobsCounters.Deleted} </td>
+                        </tr>
+                        <tr>
+                            <th>Unknown :</th>
+                            <td> {jobsCounters.Unknown} </td>
                         </tr>
                     </tbody>
                 </table>

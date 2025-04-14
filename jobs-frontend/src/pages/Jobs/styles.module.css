@@ -69,6 +69,7 @@
     list-style: none;
     display: flex;
     padding: 10px 20px;
+    margin: 0;
 }
 
 .breadcrumb li {
@@ -95,7 +96,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100%;
     padding: 0 20px;
     background-color: #FFF;
     font-size: 16px;
@@ -190,4 +190,26 @@
     font-weight: bold;
     border: 2px solid #007bff;
     border-radius: 4px;
+}
+
+
+.button {
+    background-color: #2C3E50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button:hover {
+    background-color: #243443;
+    transform: scale(1.05);
+}
+
+.button:active {
+    background-color: #1B2936;
+    transform: scale(0.95);
 }

@@ -6,7 +6,7 @@ const JobBoards = () => {
                 Job Boards
             </div>
             <div className='cardBody'>
-                <ol className={styles.jobBoardLinks}>
+                <ul className={styles.jobBoardLinks}>
                     <li>
                         <a
                             href="https://www.linkedin.com/jobs/"
@@ -169,7 +169,7 @@ const JobBoards = () => {
                             Lensa
                         </a>
                     </li>
-                </ol>
+                </ul>
             </div>
         </div>
     );

@@ -2,27 +2,24 @@ import {chromium} from "@playwright/test";
 import {execSync} from 'child_process';
 import dotenv from "dotenv";
 import fs from "fs";
-import path from "node:path";
 import matter from 'gray-matter';
+import path from "node:path";
 import Turndown from "turndown";
-
 
 dotenv.config({path: `.env.${process.env.NODE_ENV ?? 'development'}`});
 
 // --- Constants ---
-// const FROM_AGE = 'last'; // in days last, 1, 3
-// const FROM_AGE = '1'; // in days last, 1, 3
+const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Notebooks/Job Search/Job Search PM/Jobs';
 const FROM_AGE = 'last'; // in days last, 1, 3
-const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Work/Areas/Job Search/Jobs';
-const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
-// const SEARCH_TERMS = [];
+// const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
+const SEARCH_TERMS = ["PHP Developer"]
 const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
 const SKILLS_UNKNOWN = [".Net", "ASP.NET", "C#", "C++", "Drupal", "Flutter", "Golang", "Kotlin", "MS SQL", "MSSQL", "Next.js", "Spring", "Swift", "VB", "VB.Net", "Visual Basic", "Wordpress"].map(escapeRegExp);
 const VERIFICATION_TEXT = "Additional Verification Required";
 const EXPIRED_TEXT = "This job has expired on Indeed";
 const NEXT_PAGE_SELECTOR = 'a[data-testid="pagination-page-next"]';
 const JOB_CACHE_FILE = 'cache/jobsCacheIndeed.json';
-const PAUSE_IN_MS = 10000;
+const PAUSE_IN_MS = 20000;
 const turnDownService = new Turndown();
 let newCacheList = [];
 let newJobList = loadCache();
@@ -33,6 +30,7 @@ let browsersFirstTab = null;
 // PHASE 1 :: Get all job keys for search terms
 try {
     await archiveOldJobs();
+
     const existingJobKeys = await getExistingJobKeys();
     console.log("Existing Jobs in DB:", existingJobKeys.length);
 
@@ -87,12 +85,7 @@ try {
 
         const URL = newJob.link;
         let jobData = {
-            title: '',
-            company: '',
-            salary_min: 0,
-            salary_max: 0,
-            post_html: '',
-            date_posted: null,
+            title: '', company: '', salary_min: 0, salary_max: 0, post_html: '', date_posted: null,
         }
 
         await browsersFirstTab.goto(URL);
@@ -152,9 +145,7 @@ try {
 
         const markdownBody = turnDownService.turndown(jobData.post_html);
         const fileContents = matter.stringify(markdownBody, frontMatterData);
-        const safeCompany = frontMatterData.company.replace(/\s+/g, '_');
-        const safeTitle = frontMatterData.title.replace(/\s+/g, '_');
-        const filePath = path.join(PROJECT_PATH, `${safeCompany}-${safeTitle}.md`);
+        const filePath = path.join(PROJECT_PATH,'New', `Indeed-${frontMatterData.jk}.md`);
 
         fs.writeFileSync(filePath, fileContents, "utf8");
         console.log("Markdown file saved at:", filePath);
@@ -168,47 +159,69 @@ try {
 
 //-------------------------------------------------------//
 
+/**
+ * Archives old Markdown job files from the "Deleted" folder to the "x_Archives_x" folder.
+ * Files are considered old if their "date_new" front-matter property is older than one month.
+ * Only processes files with a ".md" extension.
+ *
+ * @return {Promise<void>} Resolves when the archiving process is complete.
+ */
 async function archiveOldJobs() {
-    const files = fs.readdirSync(PROJECT_PATH);
-    for (const file of files) {
-        if (file.endsWith(".md")) {
-            const fileContent = fs.readFileSync(path.join(PROJECT_PATH, file), 'utf8');
-            const {data} = matter(fileContent);
-            if (data && data.date_new) {
-                const dateNew = new Date(data.date_new);
-                const threeMonthsAgo = new Date();
-                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 1);
+    const deletedFolder = path.join(PROJECT_PATH, 'Deleted');
+    const archiveFolder = path.join(PROJECT_PATH, 'x_Archived_x');
+    const files = fs.readdirSync(deletedFolder);
+    const markdownFiles = files.filter(file => path.extname(file) === '.md');
+    const oneMonthsAgo = new Date(new Date().setMonth(new Date().getMonth() - 1));
 
-                if (dateNew < threeMonthsAgo) {
-                    const archivePath = "/Users/greg/Library/CloudStorage/Dropbox/x_Archives_x/Jobs";
-                    const targetPath = path.join(archivePath, file);
-
-                    if (!fs.existsSync(archivePath)) {
-                        fs.mkdirSync(archivePath, {recursive: true});
-                    }
-
-                    fs.renameSync(path.join(PROJECT_PATH, file), targetPath);
-                    console.log(`Archived file: ${file} to ${targetPath}`);
-                }
-            }
-        }
+    if (!markdownFiles.length) {
+        console.log('No Markdown files found in the directory.');
+        return;
     }
-    
 
+    for (const file of markdownFiles) {
+        const fileContent = fs.readFileSync(path.join(deletedFolder, file), 'utf8');
+        const {data} = matter(fileContent);
+        const dateNew = new Date(data.date_new);
+
+        if (dateNew > oneMonthsAgo) {
+            continue;
+        }
+
+        const targetPath = path.join(archiveFolder, file);
+        if (!fs.existsSync(archiveFolder)) {
+            fs.mkdirSync(archiveFolder, {recursive: true});
+        }
+
+        fs.renameSync(path.join(deletedFolder, file), targetPath);
+        console.log(`Archived file: ${file} to ${targetPath}`);
+    }
 }
 
 async function getExistingJobKeys() {
     const existingJobKeys = [];
-        const files = fs.readdirSync(PROJECT_PATH);
-        for (const file of files) {
-            if (file.endsWith(".md")) {
-                const fileContent = fs.readFileSync(path.join(PROJECT_PATH, file), 'utf8');
-                const {data} = matter(fileContent);
+
+    function traverseDirectory(directory) {
+        const entries = fs.readdirSync(directory, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const entryPath = path.join(directory, entry.name);
+            if (entry.isDirectory()) {
+                if (entry.name === 'x_Archived_x') {
+                    continue;
+                }
+                traverseDirectory(entryPath);
+            } else if (entry.isFile() && entry.name.endsWith(".md")) {
+                const fileContent = fs.readFileSync(entryPath, 'utf8');
+                const { data } = matter(fileContent);
                 if (data && data.jk) {
                     existingJobKeys.push(data.jk);
                 }
             }
         }
+    }
+
+    traverseDirectory(PROJECT_PATH);
+
     return existingJobKeys;
 }
 
@@ -362,12 +375,7 @@ for (const newJob of newJobList) {
     }
 
     let jobData = {
-        title: '',
-        company: '',
-        salary_min: 0,
-        salary_max: 0,
-        post_html: '',
-        date_posted: null,
+        title: '', company: '', salary_min: 0, salary_max: 0, post_html: '', date_posted: null,
     }
     const jsonContent = await scriptTag.evaluate((el) => el.textContent.trim());
     if (isValidJson(jsonContent)) {
@@ -401,11 +409,9 @@ for (const newJob of newJobList) {
         salary_max: jobData.salary_max,
         link: newJob.link,
         post_html: jobData.post_html,
-        status: "New",
-        // date_posted: jsonData.datePosted,
+        status: "New", // date_posted: jsonData.datePosted,
         date_new: new Date().toISOString(),
-        skills_known: "",
-        // skills_unknown: "",
+        skills_known: "", // skills_unknown: "",
     }
 
     // newDBRecord.post_html = highlightWords(newDBRecord.post_html);

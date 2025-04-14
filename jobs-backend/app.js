@@ -9,9 +9,8 @@ const {marked} = require('marked');
 const grayMatter = require('gray-matter');
 const app = express();
 const port = process.env.PORT || 5174;
-const JOBS_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Work/Areas/Job Search/Jobs';
+const JOBS_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Notebooks/Job Search/Job Search PM/Jobs';
 const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
-
 
 dotenv.config();
 app.use(cors());
@@ -19,61 +18,82 @@ app.use(express.json());
 
 app.get('/api/jobs', async (req, res) => {
     try {
-
         const {status} = req.query;
-        const files = await fs.readdir(JOBS_PATH);
-        let jobs = [];
-        for (const file of files) {
-            if (file.endsWith(".md")) {
-                const filePath = path.join(JOBS_PATH, file);
-                const fileContent = await fs.readFile(filePath, 'utf8');
-                const {data, content} = grayMatter(fileContent);
-                if (data && data.status) {
-                    if (data.status !== status) {
-                        continue;
+
+        async function readFilesRecursively(dir) {
+            const entries = await fs.readdir(dir, {withFileTypes: true});
+            let jobs = [];
+
+            for (const entry of entries) {
+                const entryPath = path.join(dir, entry.name);
+
+                if (entry.isDirectory()) {
+                    const subJobs = await readFilesRecursively(entryPath);
+                    jobs = jobs.concat(subJobs);
+                } else if (entry.isFile() && entry.name.endsWith('.md')) {
+                    if ((status === 'New' && entry.name.endsWith('.md')) || (status !== 'New' && entry.name === 'Job Post.md')) {
+                        const fileContent = await fs.readFile(entryPath, 'utf8');
+                        const {data, content} = grayMatter(fileContent);
+
+                        // Filter by matching `status` (if present in frontmatter data)
+                        if (data && data.status && data.status !== status) {
+                            continue;
+                        }
+
+                        const fileStat = await fs.stat(entryPath);
+
+                        data.id = fileStat.ino;
+                        data.file_path = entryPath;
+                        data.content = content;
+                        data.html = highlightWords(marked(content));
+
+                        jobs.push(data);
                     }
+
                 }
-                const fileStat = await fs.stat(filePath);
-
-                data.id = fileStat.ino;
-                data.file_path = filePath;
-                data.content = content;
-                data.html = highlightWords(marked(content));
-
-                jobs.push(data);
             }
+
+            return jobs;
         }
+
+        const filePath = path.join(JOBS_PATH, status);
+        const jobs = await readFilesRecursively(filePath);
         res.status(200).send(jobs);
     } catch (error) {
         console.error("Error reading files:", error);
         res.status(500).send('Server Error');
     }
-
 });
 
 app.get('/api/jobs/status-count', async (req, res) => {
     try {
         const files = await fs.readdir(JOBS_PATH);
         const statusCounts = {
-            'New': 0,
-            'Applied': 0,
-            'Saved': 0,
-            'Deleted': 0
+            'New': 0, 'Applied': 0, 'Saved': 0, 'Deleted': 0, 'Unknown': 0
         };
 
-        for (const file of files) {
-            if (file.endsWith(".md")) {
-                const filePath = path.join(JOBS_PATH, file);
-                const fileContent = await fs.readFile(filePath, 'utf8');
-                const { data } = grayMatter(fileContent);
+        async function readFilesRecursively(dir) {
+            const entries = await fs.readdir(dir, {withFileTypes: true});
+            for (const entry of entries) {
+                const entryPath = path.join(dir, entry.name);
 
-                if (data && data.status) {
-                    statusCounts[data.status] = (statusCounts[data.status] || 0) + 1;
-                } else {
-                    statusCounts['Unknown'] = (statusCounts['Unknown'] || 0) + 1;
+                if (entry.isDirectory()) {
+                    await readFilesRecursively(entryPath); // Recursively handle subdirectories
+                } else if (entry.isFile() && entry.name.endsWith('.md')) {
+                    const fileContent = await fs.readFile(entryPath, 'utf8');
+                    const {data} = grayMatter(fileContent);
+
+                    if (data && data.status) {
+                        statusCounts[data.status] = (statusCounts[data.status] || 0) + 1;
+                    } else {
+                        statusCounts['Unknown'] += 1; // Increment 'Unknown' status if invalid data
+                    }
                 }
             }
         }
+
+        await readFilesRecursively(JOBS_PATH); // Start processing from the root jobs folder
+
         res.status(200).json(statusCounts);
     } catch (error) {
         console.error("Error reading files:", error);
@@ -102,11 +122,15 @@ app.put('/api/job', async (req, res) => {
             const yamlStr = yaml.dump(job);
             const fileContent = `---\n${yamlStr}\n---\n\n${content}`;
             await fs.writeFile(job.file_path, fileContent, 'utf8');
-
-            const fileStat = await fs.stat(job.file_path);
-            job.id = fileStat.ino;
-            job.content = content;
-            job.html = highlightWords(content);
+            if (job.status === 'Deleted') {
+                const deletedFilePath = path.join(JOBS_PATH, 'Deleted', path.basename(job.file_path));
+                await fs.rename(job.file_path, deletedFilePath);
+            } else {
+                const fileStat = await fs.stat(job.file_path);
+                job.id = fileStat.ino;
+                job.content = content;
+                job.html = highlightWords(content);
+            }
 
             res.status(200).send(job);
         } catch (error) {
@@ -121,6 +145,25 @@ app.put('/api/job', async (req, res) => {
     }
 
 });
+
+app.get('/api/notes/markdown', async (req, res) => {
+    const filePath = '/Users/greg/Code/bws/docs/Job Search.md';
+    const fileContent = await fs.readFile(filePath, 'utf8');
+    res.status(200).send(fileContent);
+})
+
+app.get('/api/notes/html', async (req, res) => {
+    const filePath = '/Users/greg/Code/bws/docs/Job Search.md';
+    const fileContent = await fs.readFile(filePath, 'utf8');
+    const {data, content} = grayMatter(fileContent);
+    res.status(200).send(marked(content));
+})
+
+app.put('/api/notes/markdown', async (req, res) => {
+    const filePath = '/Users/greg/Code/bws/docs/Job Search.md';
+    const fileContent = await fs.readFile(filePath, 'utf8');
+    res.status(200).send(fileContent);
+})
 
 app.get('/api/job/get/:id', async (req, res) => {
     const jobId = req.params.id;
@@ -152,10 +195,7 @@ async function findJobById(jobId) {
             const {data, content} = grayMatter(fileContent);
 
             return {
-                ...data,
-                id: jobFileStat.ino,
-                file_path: jobFilePath,
-                content,
+                ...data, id: jobFileStat.ino, file_path: jobFilePath, content,
             };
         }
     }
@@ -259,40 +299,29 @@ app.get('/api/job/get-job-saved', async (req, res) => {
 });
 
 
-
-
 app.get('/api/jobs/counters', async (req, res) => {
     let counters = {
-        new: 0,
-        applied: 0,
-        deleted: 0,
-        rejected: 0,
-        accepted: 0,
-        interview: 0,
-        offer: 0,
-        hired: 0,
+        new: 0, applied: 0, deleted: 0, rejected: 0, accepted: 0, interview: 0, offer: 0, hired: 0,
     };
 
     try {
         const files = await fs.readdir(JOBS_NEW_PATH, {withFileTypes: true});
         const mdFiles = files.filter(file => file.isFile() && path.extname(file.name) === '.md');
-        await Promise.all(
-            mdFiles.map(async file => {
-                const filePath = path.join(JOBS_NEW_PATH, file.name);
-                try {
-                    const fileContent = await fs.readFile(filePath, 'utf8');
-                    const frontMatter = grayMatter(fileContent).data;
-                    if (frontMatter && frontMatter.status) {
-                        const status = frontMatter.status.toLowerCase();
-                        if (counters.hasOwnProperty(status)) {
-                            counters[status]++;
-                        }
+        await Promise.all(mdFiles.map(async file => {
+            const filePath = path.join(JOBS_NEW_PATH, file.name);
+            try {
+                const fileContent = await fs.readFile(filePath, 'utf8');
+                const frontMatter = grayMatter(fileContent).data;
+                if (frontMatter && frontMatter.status) {
+                    const status = frontMatter.status.toLowerCase();
+                    if (counters.hasOwnProperty(status)) {
+                        counters[status]++;
                     }
-                } catch (fileErr) {
-                    console.error(`Error reading or parsing file ${file.name}:`, fileErr.message);
                 }
-            })
-        );
+            } catch (fileErr) {
+                console.error(`Error reading or parsing file ${file.name}:`, fileErr.message);
+            }
+        }));
 
         return res.json(counters);
     } catch (err) {

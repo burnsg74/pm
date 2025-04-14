@@ -48,6 +48,9 @@ const Jobs = () => {
                 case 'd':
                     deleteJob();
                     break;
+                case 'a':
+                    applyJob();
+                    break;
                 case "o":
                     openJobLink();
                     break;
@@ -132,20 +135,41 @@ const Jobs = () => {
         }
     };
 
+    const applyJob = async () => {
+        if (Array.isArray(jobs) && jobs.length > 0) {
+            const selectedJob = jobs[selectedJobIndex];
+            console.log("Selected job:", selectedJob);
+            if (selectedJob) {
+                try {
+                    const updatedJob = await updateJob({...selectedJob, status: "Applied"});
+                    console.log("Job saved successfully:", updatedJob);
+                    await fetchJobs();
+                    await fetchJobCounters();
+                } catch (error) {
+                    console.error("Failed to save job:", error);
+                }
+            } else {
+                console.log("No job selected to save.");
+            }
+        } else {
+            console.log("jobs is not an array or is empty.");
+        }
+    };
+
     const deleteJob = async () => {
-       let job = jobs[selectedJobIndex];
-       if (job) {
-           try {
-               const updatedJob = await updateJob({...job, status: "Deleted"});
-               console.log("Job deleted successfully:", updatedJob);
-               await fetchJobs();
-               await fetchJobCounters();
-           } catch (error) {
-               console.error("Failed to delete job:", error);
-           }
-       } else {
-           console.log("No job selected to delete.");
-       }
+        let job = jobs[selectedJobIndex];
+        if (job) {
+            try {
+                const updatedJob = await updateJob({...job, status: "Deleted"});
+                console.log("Job deleted successfully:", updatedJob);
+                await fetchJobs();
+                await fetchJobCounters();
+            } catch (error) {
+                console.error("Failed to delete job:", error);
+            }
+        } else {
+            console.log("No job selected to delete.");
+        }
     };
 
     const updateJob = async (job) => {
@@ -230,6 +254,13 @@ const Jobs = () => {
         }
     };
 
+    const renderBanner = () => (
+        <div className={styles.banner}>
+            🎉 Congrats, you have processed all the jobs! 🎉
+        </div>
+    );
+
+
     return (<div>
         <nav className={styles.navbar}>
             <ul className={styles.breadcrumb}>
@@ -241,14 +272,16 @@ const Jobs = () => {
             </span>
         </nav>
         <div className={styles.container}>
+            {jobs.length === 0 && renderBanner()}
+            {(jobs.length > 0) && (
             <div className={styles.views}>
                 <span onClick={() => setView("table")}
                       className={view === "table" ? styles.active : ''}>Table View</span>
                 <span onClick={() => setView("detail")}
                       className={view === "detail" ? styles.active : ''}>Detail View</span>
             </div>
-            {(view === "table") && (
-                <table className={`${styles.jobSearchTable}`}>
+            )}
+            {(jobs.length > 0) && (view === "table") && (<table className={`${styles.jobSearchTable}`}>
                 <thead>
                 <tr>
                     <th>Company</th>
@@ -260,10 +293,9 @@ const Jobs = () => {
                 </tr>
                 </thead>
                 <tbody>
-                {Array.isArray(jobs) && jobs.map((job, index) => (
-                    <tr key={job.id}
-                        className={index === selectedJobIndex ? styles.selectedRow : ""}
-                    >
+                {Array.isArray(jobs) && jobs.map((job, index) => (<tr key={job.id}
+                                                                      className={index === selectedJobIndex ? styles.selectedRow : ""}
+                >
                     <td>{job.company}</td>
                     <td>{job.title}</td>
                     <td>{job.skills_known}</td>
@@ -282,7 +314,7 @@ const Jobs = () => {
                 </tbody>
             </table>)}
 
-            {(view === "detail") && (<div className={styles.viewContainer}>
+            {(jobs.length > 0) &&  (view === "detail") && (<div className={styles.viewContainer}>
                     <h2 className={styles.detailHeader}>{jobs[selectedJobIndex]?.title}
                         <span>{`Job ${jobs.findIndex((job) => job === jobs[selectedJobIndex]) + 1} of ${jobs.length}`}</span>
                     </h2>
@@ -298,6 +330,12 @@ const Jobs = () => {
                                 </>)}
                             </div>
                             <div className={styles.rightColumn}>
+                                <a href={jobs[selectedJobIndex]?.link} target="_blank" rel="noopener noreferrer"
+                                   className="card-link">
+                                    <button className={styles.button} type="button">
+                                        Apply for Job
+                                    </button>
+                                </a>
                                 <ul>
                                     <li><strong>Company:</strong> {jobs[selectedJobIndex]?.company}</li>
                                     <li>
@@ -306,6 +344,8 @@ const Jobs = () => {
                                         <a href={jobs[selectedJobIndex]?.link} target="_blank" rel="noopener noreferrer"
                                            className="card-link">
                                             Open in {jobs[selectedJobIndex]?.source}
+
+
                                         </a>
                                     </li>
                                     <li>
