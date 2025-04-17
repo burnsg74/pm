@@ -1,4 +1,4 @@
-import JobBoards from "./components/JobBoards/JobBoards.jsx";
+import JobBoards from "./components/JobBoards/JobBoards.tsx";
 import JobSearch from "./components/JobSearch/JobSearch.jsx";
 import Reference from "./components/Reference/Reference.jsx";
 import UnemploymentStatus from "./components/UnemploymentStatus/UnemploymentStatus.jsx";

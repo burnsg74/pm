@@ -9,10 +9,10 @@ import Turndown from "turndown";
 dotenv.config({path: `.env.${process.env.NODE_ENV ?? 'development'}`});
 
 // --- Constants ---
-const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Notebooks/Job Search/Job Search PM/Jobs';
-const FROM_AGE = 'last'; // in days last, 1, 3
-// const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
-const SEARCH_TERMS = ["PHP Developer"]
+const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Notebooks/Job-Search/Jobs';
+const FROM_AGE = '1'; // in days last, 1, 3
+const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
+// const SEARCH_TERMS = ["PHP Developer"]
 const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
 const SKILLS_UNKNOWN = [".Net", "ASP.NET", "C#", "C++", "Drupal", "Flutter", "Golang", "Kotlin", "MS SQL", "MSSQL", "Next.js", "Spring", "Swift", "VB", "VB.Net", "Visual Basic", "Wordpress"].map(escapeRegExp);
 const VERIFICATION_TEXT = "Additional Verification Required";
@@ -25,17 +25,19 @@ let newCacheList = [];
 let newJobList = loadCache();
 let browser = null;
 let browsersFirstTab = null;
+let browsersSecondTab = null;
 
 // --------------------------------------------------------------------- //
 // PHASE 1 :: Get all job keys for search terms
 try {
-    await archiveOldJobs();
+    // await archiveOldJobs();
 
     const existingJobKeys = await getExistingJobKeys();
-    console.log("Existing Jobs in DB:", existingJobKeys.length);
+    // console.log("Existing Jobs in DB:", existingJobKeys.length);
 
     browser = await openChrome();
     browsersFirstTab = BrowsersFirstTab(browser);
+    browsersSecondTab = BrowsersSecondTab(browser);
 
     for (const [index, SEARCH_TERM] of SEARCH_TERMS.entries()) {
         console.log(`Processing jobs for search term: "${SEARCH_TERM}" (${index + 1} of ${SEARCH_TERMS.length})`);
@@ -58,7 +60,7 @@ try {
             pageNumber++;
             console.log(SEARCH_TERM, ": Page Number:", pageNumber);
 
-            const pageJobList = await getPageJobList(browsersFirstTab);
+            const pageJobList = await getPageJobList(browsersFirstTab, existingJobKeys);
             console.log("Page Job List:", pageJobList.length);
 
             updateNewJobList(pageJobList, SEARCH_TERM);
@@ -145,7 +147,30 @@ try {
 
         const markdownBody = turnDownService.turndown(jobData.post_html);
         const fileContents = matter.stringify(markdownBody, frontMatterData);
-        const filePath = path.join(PROJECT_PATH,'New', `Indeed-${frontMatterData.jk}.md`);
+
+
+        const sanitizeFilename = (input) => {
+            return input
+                .replace(/[\/\\?%*:|"<>]/g, '_') // Replace invalid characters with underscore
+                .replace(/\s/g, '_')             // Replace spaces with underscore
+                .trim();                         // Remove leading/trailing spaces
+        };
+        const companyDir = path.join(PROJECT_PATH, sanitizeFilename(jobData.company));
+        const titleDir = path.join(companyDir, sanitizeFilename(jobData.title));
+
+        if (!fs.existsSync(titleDir)) {
+            fs.mkdirSync(titleDir, { recursive: true });
+        }
+
+        const filePath = path.join(titleDir, 'Job Post.md');
+
+        fs.writeFileSync(filePath, fileContents, "utf8");
+        console.log("Markdown file saved at:", filePath)
+
+
+
+
+        // const filePath = path.join(PROJECT_PATH,'New', `Indeed-${frontMatterData.jk}.md`);
 
         fs.writeFileSync(filePath, fileContents, "utf8");
         console.log("Markdown file saved at:", filePath);
@@ -167,9 +192,7 @@ try {
  * @return {Promise<void>} Resolves when the archiving process is complete.
  */
 async function archiveOldJobs() {
-    const deletedFolder = path.join(PROJECT_PATH, 'Deleted');
-    const archiveFolder = path.join(PROJECT_PATH, 'x_Archived_x');
-    const files = fs.readdirSync(deletedFolder);
+    const files = fs.readdirSync(PROJECT_PATH);
     const markdownFiles = files.filter(file => path.extname(file) === '.md');
     const oneMonthsAgo = new Date(new Date().setMonth(new Date().getMonth() - 1));
 
@@ -179,7 +202,7 @@ async function archiveOldJobs() {
     }
 
     for (const file of markdownFiles) {
-        const fileContent = fs.readFileSync(path.join(deletedFolder, file), 'utf8');
+        const fileContent = fs.readFileSync(path.join(PROJECT_PATH, file), 'utf8');
         const {data} = matter(fileContent);
         const dateNew = new Date(data.date_new);
 
@@ -210,7 +233,7 @@ async function getExistingJobKeys() {
                     continue;
                 }
                 traverseDirectory(entryPath);
-            } else if (entry.isFile() && entry.name.endsWith(".md")) {
+            } else if (entry.isFile() && entry.name === 'Job Post.md') {
                 const fileContent = fs.readFileSync(entryPath, 'utf8');
                 const { data } = matter(fileContent);
                 if (data && data.jk) {
@@ -255,6 +278,9 @@ async function openChrome() {
 
 function BrowsersFirstTab(browser) {
     return browser.contexts()[0].pages()[0];
+}
+function BrowsersSecondTab(browser) {
+    return browser.contexts()[0].pages()[1];
 }
 
 // const browsersFirstTab = BrowsersFirstTab(browser);
@@ -503,8 +529,8 @@ async function simulateUserWindowScroll(page) {
 }
 
 
-async function getPageJobList(page) {
-    return await page.evaluate(async () => {
+async function getPageJobList(page, existingJobKeys) {
+    return await page.evaluate(async (existingJobKeys) => {
         const jobCardsDiv = document.getElementById("mosaic-provider-jobcards");
         if (!jobCardsDiv) {
             console.log("Job cards division not found on this page.");
@@ -515,13 +541,14 @@ async function getPageJobList(page) {
         const pageJobList = [];
         for (const aElement of Array.from(jobCardsLinks)) {
             const jk = aElement.getAttribute("data-jk");
+            if (existingJobKeys.includes(jk)) continue;
             const href = "https://www.indeed.com" + aElement.getAttribute("href");
             const title = aElement.textContent.trim();
             pageJobList.push({jk, href, title});
         }
 
         return pageJobList;
-    });
+    }, existingJobKeys);
 }
 
 function updateNewJobList(pageJobList, searchTerm) {

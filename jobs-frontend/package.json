@@ -5,16 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite --open",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "start": "concurrently \"npm run start:frontend\" \"DEBUG=vite:* npm run start:backend\"",
     "start:frontend": "vite --open",
     "start:backend": "cd ../jobs-backend && NODE_ENV=development npm run dev",
     "scrap:indeed": "cd ../jobs-scraper && npm run scrap:indeed",
-    "check:pakcages": "npx depcheck"
+    "check:pakcages": "npx depcheck",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@codemirror/lang-markdown": "^6.3.2",
-    "@codemirror/lang-yaml": "^6.1.2",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
@@ -25,25 +27,29 @@
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.15",
-    "@replit/codemirror-vim": "^6.2.1",
-    "@uiw/react-codemirror": "^4.23.8",
+    "@reduxjs/toolkit": "^2.7.0",
     "concurrently": "^9.1.2",
     "echarts": "^5.6.0",
     "lodash": "^4.17.21",
     "marked": "^15.0.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^6.28.0"
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^6.28.0",
+    "redux": "^5.0.1",
+    "tinymce": "^7.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "@types/node": "^22.14.1",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "typescript": "^5.8.3",
     "vite": "6.2.6"
   }
 }

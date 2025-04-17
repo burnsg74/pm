@@ -5,39 +5,30 @@ import GaugeChart from "./components/GaugeChart/GaugeChart.jsx";
 const UnemploymentStatus = () => {
 
     const MILLISECONDS_IN_ONE_DAY = 1000 * 60 * 60 * 24; // ms in secs * secs in min * min in hours * hours in days
-    const TOTAL_MONTHS_OF_UNEMPLOYMENT = 12;
-    const [monthsPassed, setMonthsPassed] = useState(0);
-    const [extraDaysPassed, setExtraDaysPassed] = useState(0);
-    const [monthsLeft, setMonthsLeft] = useState(0);
-    const [extraDaysLeft, setExtraDaysLeft] = useState(0);
+    // const TOTAL_MONTHS_OF_UNEMPLOYMENT = 12;
+    const TOTAL_WEEKS = 26;
     const [weeksLeft, setWeeksLeft] = useState(0);
     const [weeksPassed, setWeeksPassed] = useState(0);
     const [percentLeft, setPercentLeft] = useState(100);
 
     useEffect(() => {
-        const startDate = new Date("2024-12-01");
-        const endDate = new Date("2025-11-29");
+        const startDate = new Date("2024-12-11");
+        const totalDaysDuration = TOTAL_WEEKS * 7; // 26 weeks * 7 days = 182 days
         const today = new Date(new Date().setHours(0, 0, 0, 0));
-        const totalDurationInMs = endDate.getTime() - startDate.getTime();
-        const totalDurationInDays = totalDurationInMs / MILLISECONDS_IN_ONE_DAY;
-        const daysPassed = Math.floor(Math.max(0, (today.getTime() - startDate.getTime()) / MILLISECONDS_IN_ONE_DAY));
-        const remainingDays = Math.ceil(Math.max(0, totalDurationInDays - daysPassed));
-        const percentLeft = Math.ceil((remainingDays / totalDurationInDays) * 100);
-        const weeksPassed = Math.floor(daysPassed / 7);
-        const weeksLeft = Math.floor(remainingDays / 7);
-        const daysPerMonth = totalDurationInDays / TOTAL_MONTHS_OF_UNEMPLOYMENT;
-        const monthsPassed = Math.floor(daysPassed / daysPerMonth);
-        const extraDaysPassed = Math.floor(daysPassed % daysPerMonth);
-        const monthsLeft = TOTAL_MONTHS_OF_UNEMPLOYMENT - monthsPassed;
-        const extraDaysLeft = Math.floor(remainingDays % daysPerMonth);
 
-        setWeeksPassed(weeksPassed);
-        setWeeksLeft(weeksLeft);
-        setMonthsPassed(monthsPassed);
-        setExtraDaysPassed(extraDaysPassed);
-        setMonthsLeft(monthsLeft);
-        setExtraDaysLeft(extraDaysLeft);
-        setPercentLeft(percentLeft);
+        // Days elapsed and remaining
+        const daysPassed = Math.max(0, Math.floor((today - startDate) / MILLISECONDS_IN_ONE_DAY));
+        const daysLeft = Math.max(0, totalDaysDuration - daysPassed);
+
+        // Calculate weeks passed, weeks left, and percentage left
+        const weeksPassed = Math.floor(daysPassed / 7);
+        const weeksLeft = Math.ceil(daysLeft / 7); // Rounding up weeks for partial ones
+        const percentLeft = Math.ceil((weeksLeft / TOTAL_WEEKS) * 100);
+
+        setWeeksPassed(weeksPassed); // Set weeks that have passed
+        setWeeksLeft(weeksLeft); // Set remaining weeks
+        setPercentLeft(percentLeft); // Update percentage left
+
     }, []);
 
     return (<div className='card'>
@@ -49,12 +40,12 @@ const UnemploymentStatus = () => {
             <table className={styles.unemploymentTable}>
                 <tbody>
                 <tr>
-                    <th>Dates:</th>
-                    <td>01-Dec-2024 to 29-Nov-2025</td>
+                    <th>Amount:</th>
+                    <td>$836.00 / $752.40</td>
                 </tr>
                 <tr>
-                    <th>Amount:</th>
-                    <td>$836.00</td>
+                    <th>Total Weeks:</th>
+                    <td>26 Weeks</td>
                 </tr>
                 <tr>
                     <th>Weeks Passed:</th>
@@ -63,14 +54,6 @@ const UnemploymentStatus = () => {
                 <tr>
                     <th>Weeks Left:</th>
                     <td>{weeksLeft} Weeks</td>
-                </tr>
-                <tr>
-                    <th>Time Passed:</th>
-                    <td>{monthsPassed} Months, {extraDaysPassed} Days</td>
-                </tr>
-                <tr>
-                    <th>Time Left:</th>
-                    <td>{monthsLeft} Months, {extraDaysLeft} Days</td>
                 </tr>
                 </tbody>
             </table>

@@ -1,17 +1,26 @@
-import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
-import styles from "./styles.module.css"
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import styles from "./styles.module.css";
+
+interface JobCounters {
+    New: number;
+    Applied: number;
+    Saved: number;
+    Deleted: number;
+    Unknown: number;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const JobSearch = () => {
-
-    const [jobsCounters, setJobsCounters] = useState({
+    const [jobsCounters, setJobsCounters] = useState<JobCounters>({
         New: 0,
         Applied: 0,
-        Saved:0,
-        Deleted:0,
-        Unknown:0,
-    })
+        Saved: 0,
+        Deleted: 0,
+        Unknown: 0,
+    });
+
     useEffect(() => {
         const fetchJobs = async () => {
             try {
@@ -27,18 +36,19 @@ const JobSearch = () => {
                     return;
                 }
 
-                setJobsCounters(await response.json());
+                const data: JobCounters = await response.json();
+                setJobsCounters(data);
             } catch (error) {
                 console.error("Error fetching jobs:", error);
             }
         };
 
-        fetchJobs().then();
+        void fetchJobs();
     }, []);
 
     return (<div className='card'>
             <div className='cardHeader'>
-                Job Search
+                <Link to={'/jobs/process-new-jobs'}>Job Search </Link>
             </div>
             <div className='cardBody'>
                 <table className={`${styles.jobSearchTable}`}>

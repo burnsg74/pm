@@ -39,6 +39,9 @@ button {
 
 main {
   background-color: var(--main-background-color);
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 h2 {

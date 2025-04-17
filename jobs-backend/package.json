@@ -4,7 +4,7 @@
   "main": "app.js",
   "scripts": {
     "dev": "DEBUG=vite:* NODE_ENV=development nodemon app.js",
-    "start": "node app.js"
+    "start": "NODE_ENV=production node app.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -12,6 +12,7 @@
     "express": "^4.21.1",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "marked": "^15.0.7"
+    "marked": "^15.0.7",
+    "mysql2": "^3.6.0"
   }
 }

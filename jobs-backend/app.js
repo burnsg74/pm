@@ -7,18 +7,54 @@ const req = require("express/lib/request");
 const yaml = require('js-yaml');
 const {marked} = require('marked');
 const grayMatter = require('gray-matter');
+const mysql = require('mysql2/promise');
 const app = express();
 const port = process.env.PORT || 5174;
-const JOBS_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Notebooks/Job Search/Job Search PM/Jobs';
+const JOBS_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Notebooks/Job-Search/Jobs';
 const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
 
-dotenv.config();
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env';
+dotenv.config({ path: envFile });
+console.log(`Loaded environment variables from ${envFile}`);
 app.use(cors());
 app.use(express.json());
+
+// Create MySQL connection pool
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+app.post('/api/db-query', async (req, res) => {
+    try {
+        const { query, params } = req.body;
+        if (!query) {
+            return res.status(400).json({ error: 'Query is required' });
+        }
+
+        const [results] = await pool.execute(query, params || []);
+        res.json(results);
+    } catch (error) {
+        console.error('Database query error:', error);
+        res.status(500).json({ 
+            error: 'Database query failed', 
+            message: error.message,
+            code: error.code
+        });
+    }
+})
 
 app.get('/api/jobs', async (req, res) => {
     try {
         const {status} = req.query;
+        console.log('Status',status);
 
         async function readFilesRecursively(dir) {
             const entries = await fs.readdir(dir, {withFileTypes: true});
@@ -26,16 +62,16 @@ app.get('/api/jobs', async (req, res) => {
 
             for (const entry of entries) {
                 const entryPath = path.join(dir, entry.name);
+                console.log(entryPath);
 
                 if (entry.isDirectory()) {
                     const subJobs = await readFilesRecursively(entryPath);
                     jobs = jobs.concat(subJobs);
-                } else if (entry.isFile() && entry.name.endsWith('.md')) {
-                    if ((status === 'New' && entry.name.endsWith('.md')) || (status !== 'New' && entry.name === 'Job Post.md')) {
+                } else if (entry.isFile() && entry.name === 'Job Post.md') {
                         const fileContent = await fs.readFile(entryPath, 'utf8');
                         const {data, content} = grayMatter(fileContent);
 
-                        // Filter by matching `status` (if present in frontmatter data)
+                        console.log('Status', data.status);
                         if (data && data.status && data.status !== status) {
                             continue;
                         }
@@ -48,15 +84,13 @@ app.get('/api/jobs', async (req, res) => {
                         data.html = highlightWords(marked(content));
 
                         jobs.push(data);
-                    }
-
                 }
             }
 
             return jobs;
         }
 
-        const filePath = path.join(JOBS_PATH, status);
+        const filePath = path.join(JOBS_PATH);
         const jobs = await readFilesRecursively(filePath);
         res.status(200).send(jobs);
     } catch (error) {
@@ -78,21 +112,21 @@ app.get('/api/jobs/status-count', async (req, res) => {
                 const entryPath = path.join(dir, entry.name);
 
                 if (entry.isDirectory()) {
-                    await readFilesRecursively(entryPath); // Recursively handle subdirectories
-                } else if (entry.isFile() && entry.name.endsWith('.md')) {
+                    await readFilesRecursively(entryPath);
+                } else if (entry.isFile() && entry.name === 'Job Post.md') {
                     const fileContent = await fs.readFile(entryPath, 'utf8');
                     const {data} = grayMatter(fileContent);
 
                     if (data && data.status) {
                         statusCounts[data.status] = (statusCounts[data.status] || 0) + 1;
                     } else {
-                        statusCounts['Unknown'] += 1; // Increment 'Unknown' status if invalid data
+                        statusCounts['Unknown'] += 1;
                     }
                 }
             }
         }
 
-        await readFilesRecursively(JOBS_PATH); // Start processing from the root jobs folder
+        await readFilesRecursively(JOBS_PATH);
 
         res.status(200).json(statusCounts);
     } catch (error) {
@@ -113,6 +147,7 @@ app.put('/api/job', async (req, res) => {
         }
 
         try {
+
             if ('html' in job) {
                 delete job.html;
             }
@@ -122,15 +157,6 @@ app.put('/api/job', async (req, res) => {
             const yamlStr = yaml.dump(job);
             const fileContent = `---\n${yamlStr}\n---\n\n${content}`;
             await fs.writeFile(job.file_path, fileContent, 'utf8');
-            if (job.status === 'Deleted') {
-                const deletedFilePath = path.join(JOBS_PATH, 'Deleted', path.basename(job.file_path));
-                await fs.rename(job.file_path, deletedFilePath);
-            } else {
-                const fileStat = await fs.stat(job.file_path);
-                job.id = fileStat.ino;
-                job.content = content;
-                job.html = highlightWords(content);
-            }
 
             res.status(200).send(job);
         } catch (error) {
@@ -389,14 +415,14 @@ app.put('/api/saveContent', (req, res) => {
 
 process.on('SIGINT', () => {
     console.log('Closing SQLite database connection due to app termination...');
-    db.close((err) => {
-        if (err) {
-            console.error('Error closing SQLite database connection:', err.message);
-        } else {
-            console.log('SQLite database connection closed');
-        }
-        process.exit(0);
-    });
+    // db.close((err) => {
+    //     if (err) {
+    //         console.error('Error closing SQLite database connection:', err.message);
+    //     } else {
+    //         console.log('SQLite database connection closed');
+    //     }
+    //     process.exit(0);
+    // });
 });
 
 
