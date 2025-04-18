@@ -35,11 +35,13 @@ const pool = mysql.createPool({
 app.post('/api/db-query', async (req, res) => {
     try {
         const { query, params } = req.body;
+        console.log(query, params);
         if (!query) {
             return res.status(400).json({ error: 'Query is required' });
         }
 
         const [results] = await pool.execute(query, params || []);
+        console.log(results);
         res.json(results);
     } catch (error) {
         console.error('Database query error:', error);

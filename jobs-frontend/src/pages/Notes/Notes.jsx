@@ -1,61 +1,58 @@
-import {useEffect, useState} from "react";
 import styles from "./styles.module.css";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import React, { useRef } from 'react';
+import { Editor } from '@tinymce/tinymce-react';
+import 'tinymce/tinymce';
+import 'tinymce/themes/silver';
+import 'tinymce/skins/ui/oxide/skin.min.css';
+import 'tinymce/plugins/advlist';
+import 'tinymce/plugins/autolink';
+import 'tinymce/plugins/lists';
+import 'tinymce/plugins/link';
+import 'tinymce/plugins/image';
+import 'tinymce/plugins/charmap';
+import 'tinymce/plugins/preview';
+import 'tinymce/plugins/anchor';
+import 'tinymce/plugins/searchreplace';
+import 'tinymce/plugins/visualblocks';
+import 'tinymce/plugins/code';
+import 'tinymce/plugins/fullscreen';
+import 'tinymce/plugins/insertdatetime';
+import 'tinymce/plugins/media';
+import 'tinymce/plugins/table';
+import 'tinymce/plugins/help';
+import 'tinymce/plugins/wordcount';
 
 const Notes = () => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [content, setContent] = useState("");
-    const [loading, setLoading] = useState(true);
+    const editorRef = useRef(null);
 
-    const fetchNotes = async (endpoint) => {
-        setLoading(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                method: "GET",
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch notes: ${response.statusText}`);
-            }
-
-            const data = await response.text();
-            setContent(data);
-        } catch (error) {
-            console.error(error.message);
-        } finally {
-            setLoading(false);
-        }
+    const handleEditorChange = (content, editor) => {
+        console.log('Content was updated:', content);
     };
 
-    useEffect(() => {
-        fetchNotes("/api/notes/html");
-    }, []);
-
-    if (loading) {
-        return <p>Loading...</p>;
-    }
-
-    return (<div className={styles.container}>
-            <nav className={styles.navbar}>
-                <ul className={styles.breadcrumb}>
-                    <li><a href="/">Home</a></li>
-                    <li>Notes</li>
-                </ul>
-                <span className={styles['nav-status']}>
-                              <button onClick={handleEditMode} className={styles.toggleButton}>
-                {isEditing ? "View HTML" : "Edit"}
-            </button>
-            </span>
-            </nav>
-            <div className={styles.contentContainer}>
-                <div
-                    dangerouslySetInnerHTML={{__html: content}}
-                    className={styles.htmlViewer}
-                />
-            </div>
-        </div>
-
+    return (
+            <Editor
+                onInit={(evt, editor) => (editorRef.current = editor)}
+                initialValue="<p>This is the initial content of the editor.</p>"
+                init={{
+                    license_key: 'gpl', // Or your actual TinyMCE license key string
+                    menubar: true,
+                    plugins: [
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                    ],
+                    toolbar: 'undo redo | formatselect | ' +
+                        'bold italic backcolor | alignleft aligncenter ' +
+                        'alignright alignjustify | bullist numlist outdent indent | ' +
+                        'removeformat | help',
+                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px; height:100vh; }',
+                    base_url: '/tinymce',
+                    height: '100vh',
+                    min_height: '100vh',
+                    resize: false,
+                }}
+                onEditorChange={handleEditorChange}
+            />
     );
 };
 

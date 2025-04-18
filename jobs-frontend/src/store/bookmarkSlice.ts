@@ -1,8 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Bookmark, BookmarkState } from '../types/bookmark';
-import {AppRootState, AppRootState as RootState} from './store';
+import { Bookmark, BookmarkState } from '@app-types/bookmark';
+import {AppRootState} from './store';
 
-// Initial state for the bookmarks slice
 const initialState: BookmarkState = {
   bookmarks: [],
   status: 'idle',

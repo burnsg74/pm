@@ -9,7 +9,7 @@
     "baseUrl": ".",
     "paths": {
       "@store/*": ["src/store/*"],
-      "@types/*": ["src/types/*"]
+      "@app-types/*": ["src/types/*"]
     },
 
     /* Bundler mode */

@@ -7,7 +7,6 @@ export interface Bookmark {
   updated_at?: string;
 }
 
-// Define a type for the bookmark state in the Redux store
 export interface BookmarkState {
   bookmarks: Bookmark[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';

@@ -5,14 +5,15 @@ import fs from "fs";
 import matter from 'gray-matter';
 import path from "node:path";
 import Turndown from "turndown";
+import * as mysql from "mysql2/promise";
 
-dotenv.config({path: `.env.${process.env.NODE_ENV ?? 'development'}`});
+dotenv.config({path: `../../.env.${process.env.NODE_ENV ?? 'development'}`});
 
 // --- Constants ---
 const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Notebooks/Job-Search/Jobs';
 const FROM_AGE = '1'; // in days last, 1, 3
-const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
-// const SEARCH_TERMS = ["PHP Developer"]
+// const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
+const SEARCH_TERMS = ["Laravel PHP Developer"]
 const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
 const SKILLS_UNKNOWN = [".Net", "ASP.NET", "C#", "C++", "Drupal", "Flutter", "Golang", "Kotlin", "MS SQL", "MSSQL", "Next.js", "Spring", "Swift", "VB", "VB.Net", "Visual Basic", "Wordpress"].map(escapeRegExp);
 const VERIFICATION_TEXT = "Additional Verification Required";
@@ -21,23 +22,33 @@ const NEXT_PAGE_SELECTOR = 'a[data-testid="pagination-page-next"]';
 const JOB_CACHE_FILE = 'cache/jobsCacheIndeed.json';
 const PAUSE_IN_MS = 20000;
 const turnDownService = new Turndown();
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
 let newCacheList = [];
 let newJobList = loadCache();
 let browser = null;
 let browsersFirstTab = null;
-let browsersSecondTab = null;
+let existingJobKeys = null;
 
 // --------------------------------------------------------------------- //
 // PHASE 1 :: Get all job keys for search terms
+console.log("PHASE 1 :: Get all job keys for search terms");
 try {
-    // await archiveOldJobs();
-
-    const existingJobKeys = await getExistingJobKeys();
-    // console.log("Existing Jobs in DB:", existingJobKeys.length);
+    await archiveOldJobs();
+    existingJobKeys = await getExistingJobKeys();
+    console.log("Existing Jobs in DB:", existingJobKeys.length);
 
     browser = await openChrome();
     browsersFirstTab = BrowsersFirstTab(browser);
-    browsersSecondTab = BrowsersSecondTab(browser);
 
     for (const [index, SEARCH_TERM] of SEARCH_TERMS.entries()) {
         console.log(`Processing jobs for search term: "${SEARCH_TERM}" (${index + 1} of ${SEARCH_TERMS.length})`);
@@ -80,6 +91,7 @@ try {
 
 // PHASE 2 :: Get Job Details
 try {
+    console.log('PHASE 2 :: Get Job Details')
     let i = 0;
     for (const newJob of newJobList) {
         console.log("\n----------------------------------------");
@@ -100,7 +112,6 @@ try {
             const jsonContent = await scriptTag.evaluate((el) => el.textContent.trim());
             if (isValidJson(jsonContent)) {
                 hasValidLdJson = true;
-                console.log('Data From ld+json', jsonContent)
                 const jsonData = JSON.parse(jsonContent);
                 jobData.date_posted = jsonData.datePosted;
                 jobData.title = jsonData.title;
@@ -120,63 +131,29 @@ try {
             jobData.post_html = await browsersFirstTab.$eval('#jobDescriptionText', el => el.outerHTML);
         }
 
-        let frontMatterData = {
+        jobData.skills = getSkills(jobData.post_html, SKILLS_KNOWN);
+
+        const company = await findOrCreateCompany(jobData.company);
+        console.log("Company:", company);
+
+        await insertJob({
+            company_id: company.company_id,
             source: "Indeed",
             jk: newJob.jk,
             title: jobData.title,
-            company: jobData.company,
+            skills: jobData.skills,
             search_query: newJob.search_query,
             salary_min: jobData.salary_min,
             salary_max: jobData.salary_max,
             link: newJob.link,
+            job_post: jobData.post_html,
             status: "New",
-            date_posted: jobData.date_posted ?? null,
-            date_new: new Date().toISOString(),
-            skills_known: "",
-        }
-        // newDBRecord.post_html = highlightWords(newDBRecord.post_html);
-        frontMatterData.skills_known = getSkills(jobData.post_html, SKILLS_KNOWN);
-        console.log("Skills skills_known:", jobData.skills_known);
-        let skills_unknown = getSkills(jobData.post_html, SKILLS_UNKNOWN);
-        console.log("Skills Unknown:", skills_unknown);
-        // if (skills_unknown.length === 0 || skills_unknown.length > 0) {
-        //     console.log("😔 Skipping Job", skills_unknown.length, skills_unknown);
-        //     removeJobFromCache(newJob.jk);
-        //     continue;
-        // }
-
-        const markdownBody = turnDownService.turndown(jobData.post_html);
-        const fileContents = matter.stringify(markdownBody, frontMatterData);
-
-
-        const sanitizeFilename = (input) => {
-            return input
-                .replace(/[\/\\?%*:|"<>]/g, '_') // Replace invalid characters with underscore
-                .replace(/\s/g, '_')             // Replace spaces with underscore
-                .trim();                         // Remove leading/trailing spaces
-        };
-        const companyDir = path.join(PROJECT_PATH, sanitizeFilename(jobData.company));
-        const titleDir = path.join(companyDir, sanitizeFilename(jobData.title));
-
-        if (!fs.existsSync(titleDir)) {
-            fs.mkdirSync(titleDir, { recursive: true });
-        }
-
-        const filePath = path.join(titleDir, 'Job Post.md');
-
-        fs.writeFileSync(filePath, fileContents, "utf8");
-        console.log("Markdown file saved at:", filePath)
-
-
-
-
-        // const filePath = path.join(PROJECT_PATH,'New', `Indeed-${frontMatterData.jk}.md`);
-
-        fs.writeFileSync(filePath, fileContents, "utf8");
-        console.log("Markdown file saved at:", filePath);
+            date_posted: jobData.date_posted ? new Date(jobData.date_posted).toISOString().slice(0, 19).replace('T', ' ') : null,
+            date_new: new Date()
+        });
     }
     await browser.close();
-    process.exit(1);
+    process.exit(0);
 } catch (error) {
     console.error("Error:", error);
 }
@@ -184,70 +161,40 @@ try {
 
 //-------------------------------------------------------//
 
-/**
- * Archives old Markdown job files from the "Deleted" folder to the "x_Archives_x" folder.
- * Files are considered old if their "date_new" front-matter property is older than one month.
- * Only processes files with a ".md" extension.
- *
- * @return {Promise<void>} Resolves when the archiving process is complete.
- */
 async function archiveOldJobs() {
-    const files = fs.readdirSync(PROJECT_PATH);
-    const markdownFiles = files.filter(file => path.extname(file) === '.md');
-    const oneMonthsAgo = new Date(new Date().setMonth(new Date().getMonth() - 1));
-
-    if (!markdownFiles.length) {
-        console.log('No Markdown files found in the directory.');
-        return;
-    }
-
-    for (const file of markdownFiles) {
-        const fileContent = fs.readFileSync(path.join(PROJECT_PATH, file), 'utf8');
-        const {data} = matter(fileContent);
-        const dateNew = new Date(data.date_new);
-
-        if (dateNew > oneMonthsAgo) {
-            continue;
-        }
-
-        const targetPath = path.join(archiveFolder, file);
-        if (!fs.existsSync(archiveFolder)) {
-            fs.mkdirSync(archiveFolder, {recursive: true});
-        }
-
-        fs.renameSync(path.join(deletedFolder, file), targetPath);
-        console.log(`Archived file: ${file} to ${targetPath}`);
+    const conn = await pool.getConnection();
+    try {
+        const [result] = await conn.query(
+            `UPDATE job 
+             SET status = 'Deleted', 
+                 date_deleted = CURRENT_TIMESTAMP 
+             WHERE updated_at < DATE_SUB(NOW(), INTERVAL 1 MONTH) 
+             AND status != 'Deleted'`
+        );
+        console.log(`Updated ${result.affectedRows} old jobs to 'Deleted' status`);
+    } catch (error) {
+        console.error('Error updating old jobs:', error);
+        throw error;
+    } finally {
+        conn.release();
     }
 }
 
 async function getExistingJobKeys() {
     const existingJobKeys = [];
-
-    function traverseDirectory(directory) {
-        const entries = fs.readdirSync(directory, { withFileTypes: true });
-
-        for (const entry of entries) {
-            const entryPath = path.join(directory, entry.name);
-            if (entry.isDirectory()) {
-                if (entry.name === 'x_Archived_x') {
-                    continue;
-                }
-                traverseDirectory(entryPath);
-            } else if (entry.isFile() && entry.name === 'Job Post.md') {
-                const fileContent = fs.readFileSync(entryPath, 'utf8');
-                const { data } = matter(fileContent);
-                if (data && data.jk) {
-                    existingJobKeys.push(data.jk);
-                }
-            }
-        }
+    const conn = await pool.getConnection();
+    try {
+        const [rows] = await conn.query(
+            'SELECT jk FROM job WHERE date_new >= DATE_SUB(NOW(), INTERVAL 2 WEEK)'
+        );
+        rows.forEach(row => existingJobKeys.push(row.jk));
+    } catch (error) {
+        console.error('Error getting existing job keys:', error);
+    } finally {
+        conn.release();
     }
-
-    traverseDirectory(PROJECT_PATH);
-
     return existingJobKeys;
 }
-
 
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]#\\]/g, "\\$&");
@@ -275,15 +222,9 @@ async function openChrome() {
     return await chromium.connectOverCDP(`http://127.0.0.1:${remoteDebuggingPort}`);
 }
 
-
 function BrowsersFirstTab(browser) {
     return browser.contexts()[0].pages()[0];
 }
-function BrowsersSecondTab(browser) {
-    return browser.contexts()[0].pages()[1];
-}
-
-// const browsersFirstTab = BrowsersFirstTab(browser);
 
 function loadCache() {
     if (fs.existsSync(JOB_CACHE_FILE)) {
@@ -299,47 +240,6 @@ function loadCache() {
         return [];
     }
 }
-
-// Get each Job IDs for each search term
-for (const [index, SEARCH_TERM] of SEARCH_TERMS.entries()) {
-    console.log(`Processing jobs for search term: "${SEARCH_TERM}" (${index + 1} of ${SEARCH_TERMS.length})`);
-    const url = `https://www.indeed.com/jobs?q=${encodeURIComponent(SEARCH_TERM)}&l=Remote&fromage=${FROM_AGE}`;
-    await browsersFirstTab.goto(url);
-
-    // Search for class `jobsearch-JobCountAndSortPane-jobCount` if equals 0 jobs goto next term
-
-    const jobCountElement = await browsersFirstTab.$('.jobsearch-JobCountAndSortPane-jobCount');
-    const jobCountText = jobCountElement ? await jobCountElement.textContent() : '';
-    console.log(`Job Count: ${jobCountText}`);
-    const jobCount = parseInt(jobCountText.replace(/[^0-9]/g, ''), 10);
-    if (!jobCount || jobCount === 0) {
-        console.log(`No jobs found for search term: "${SEARCH_TERM}". Skipping to next term...`);
-        continue;
-    }
-
-    let pageNumber = 0;
-    while (true) {
-        pageNumber++;
-        console.log(SEARCH_TERM, ": Page Number:", pageNumber);
-        await pauseInMs(PAUSE_IN_MS);
-        while (await verificationRequiredCheck(browsersFirstTab)) {
-            console.log("Verification required. Retrying...");
-            await pauseInMs(3000); // Pause a bit before retrying to avoid excessive page requests.
-        }
-        await simulateUserWindowScroll(browsersFirstTab);
-        const pageJobList = await getPageJobList(browsersFirstTab);
-        updateNewJobList(pageJobList, SEARCH_TERM);
-        if (!(await clickNextPageLink(browsersFirstTab))) {
-            break;
-        }
-    }
-}
-console.log("New Jobs Found:", newJobList.length);
-
-newCacheList = [...newJobList];
-console.log("Get each Job Details, and save to DB...");
-
-let i = 0;
 
 function isValidJson(jsonContent) {
     try {
@@ -376,128 +276,12 @@ async function getSalary() {
 
 }
 
-for (const newJob of newJobList) {
-    console.log("\n----------------------------------------");
-    console.log(++i, "of", newJobList.length, ":", newJob.jk, " - ", newJob.title);
-    const URL = newJob.link;
-    await browsersFirstTab.goto(URL);
-    await pauseInMs(PAUSE_IN_MS);
-    while (await verificationRequiredCheck(browsersFirstTab)) {
-        console.log("Verification required. Retrying...");
-        await pauseInMs(3000);
-    }
-    // await verificationRequiredCheck(browsersFirstTab);
-    if (await isExpired(browsersFirstTab, newJob)) continue;
-
-    // @TODO: Check if already applied
-
-    // A JSON-based Serialization for Linked Data (https://www.w3.org/TR/2014/REC-json-ld-20140116)
-    const scriptTag = await browsersFirstTab.$('script[type="application/ld+json"]');
-    if (!scriptTag) {
-        //@TODO need a backup way to get details (maybe)
-        console.log("No JSON-LD found. Skipping...");
-        removeJobFromCache(newJob.jk);
-        continue;
-    }
-
-    let jobData = {
-        title: '', company: '', salary_min: 0, salary_max: 0, post_html: '', date_posted: null,
-    }
-    const jsonContent = await scriptTag.evaluate((el) => el.textContent.trim());
-    if (isValidJson(jsonContent)) {
-        const jsonData = JSON.parse(jsonContent);
-        jobData.title = jsonData.title;
-        jobData.company = jsonData.hiringOrganization?.name;
-        jobData.salary_min = jsonData.baseSalary?.value?.minValue || null;
-        jobData.salary_max = jsonData.baseSalary?.value?.maxValue || null;
-        jobData.post_html = jsonData.description?.replace(/\n/g, '').trim();
-    } else {
-        try {
-            let {salary_min, salary_max} = await getSalary();
-
-            jobData.title = await browsersFirstTab.textContent('h1[data-testid="jobsearch-JobInfoHeader-title"]');
-            jobData.company = await browsersFirstTab.textContent('div[data-testid="inlineHeader-companyName"]');
-            jobData.salary_min = salary_min ?? 0;
-            jobData.salary_max = salary_max ?? 0;
-            jobData.post_html = await browsersFirstTab.$eval('#jobDescriptionText', el => el.outerHTML);
-
-        } catch (error) {
-            console.log('ERROR', error)
-        }
-    }
-    let newDBRecord = {
-        source: "Indeed",
-        jk: newJob.jk,
-        title: jobData.title,
-        company: jobData.company,
-        search_query: newJob.search_query,
-        salary_min: jobData.salary_min,
-        salary_max: jobData.salary_max,
-        link: newJob.link,
-        post_html: jobData.post_html,
-        status: "New", // date_posted: jsonData.datePosted,
-        date_new: new Date().toISOString(),
-        skills_known: "", // skills_unknown: "",
-    }
-
-    // newDBRecord.post_html = highlightWords(newDBRecord.post_html);
-    newDBRecord.skills_known = getSkills(newDBRecord.post_html, SKILLS_KNOWN);
-    newDBRecord.skills_unknown = getSkills(newDBRecord.post_html, SKILLS_UNKNOWN);
-
-    if (newDBRecord.skills_known.length === 0 || newDBRecord.skills_unknown.length > 0) {
-        console.log("😔 Skipping Job", newDBRecord.skills_unknown.length, newDBRecord.skills_unknown);
-        removeJobFromCache(newJob.jk);
-        continue;
-    }
-
-    const markdown = turnDownService.turndown(newDBRecord.post_html);
-    const frontmatterData = {...newDBRecord};
-    delete frontmatterData.post_html;
-
-    const sanitizeFilename = (input) => {
-        return input
-            .replace(/[\/\\?%*:|"<>]/g, '_') // Replace invalid characters with an underscore
-            .replace(/\s/g, '_')            // Replace spaces with an underscore
-            .trim();                        // Remove leading and trailing spaces
-    };
-
-    const objectToYAML = (obj) => {
-        return Object.entries(obj)
-            .map(([key, value]) => {
-                if (typeof value === 'string') {
-                    return `${key}: "${value.replace(/"/g, '\\"')}"`; // Escape double quotes in strings
-                } else if (Array.isArray(value)) {
-                    return `${key}:\n${value.map(item => `  - ${item}`).join('\n')}`; // Format arrays
-                } else if (value && typeof value === 'object') {
-                    return `${key}:\n${objectToYAML(value).split('\n').map(line => `  ${line}`).join('\n')}`; // Recursive for nested objects
-                } else {
-                    return `${key}: ${value}`; // For numbers, booleans, or nulls
-                }
-            })
-            .join('\n');
-    };
-
-
-    const filename = `${PROJECT_PATH}/${sanitizeFilename(newDBRecord.company)}-${sanitizeFilename(newDBRecord.title)}.md`;
-    const yamlFrontmatter = objectToYAML(frontmatterData);
-    fs.writeFileSync(filename, `---\n${yamlFrontmatter}\n---\n\n${markdown}`);
-    console.log("----------------------------------------");
-}
 
 
 // Cleanup
-fs.unlinkSync(JOB_CACHE_FILE);
 await browser.close();
 console.log("All Done. Exiting...");
-// --- End of Script ---
-
-// async function openChrome() {
-//     execSync('open -a "Google Chrome" --args --remote-debugging-port=9222 https://www.indeed.com');
-//     console.log("Waiting for Chrome to launch...");
-//     await new Promise(resolve => setTimeout(resolve, 10000));
-//     return await chromium.connectOverCDP('http://127.0.0.1:9222');
-// }
-
+process.exit(0);
 
 async function pauseInMs(pauseInMs) {
     console.log("Pausing...");
@@ -528,7 +312,6 @@ async function simulateUserWindowScroll(page) {
     await page.evaluate(() => window.scrollBy(0, window.innerHeight));
 }
 
-
 async function getPageJobList(page, existingJobKeys) {
     return await page.evaluate(async (existingJobKeys) => {
         const jobCardsDiv = document.getElementById("mosaic-provider-jobcards");
@@ -536,7 +319,6 @@ async function getPageJobList(page, existingJobKeys) {
             console.log("Job cards division not found on this page.");
             return [];
         }
-
         const jobCardsLinks = jobCardsDiv.querySelectorAll("a.jcs-JobTitle");
         const pageJobList = [];
         for (const aElement of Array.from(jobCardsLinks)) {
@@ -586,8 +368,6 @@ async function clickNextPageLink(page) {
     return true;
 }
 
-
-// Save Cache
 function saveCache(data) {
     try {
         const dir = JOB_CACHE_FILE.substring(0, JOB_CACHE_FILE.lastIndexOf('/'));
@@ -615,4 +395,72 @@ function getSkills(text, skills) {
         foundSkills.add(match[0]);
     }
     return Array.from(foundSkills).join(", ");
+}
+
+async function findOrCreateCompany(companyName, noteId = null) {
+    if (!companyName) {
+        throw new Error('Company name is required');
+    }
+
+    const conn = await pool.getConnection();
+
+    try {
+        await conn.beginTransaction();
+
+        const [rows] = await conn.query(
+            'SELECT * FROM company WHERE name = ?',
+            [companyName]
+        );
+
+        if (rows.length > 0) {
+            await conn.commit();
+            return rows[0];
+        }
+
+        const [result] = await conn.query(
+            'INSERT INTO company (name) VALUES (?)',
+            [companyName]
+        );
+
+        const [newCompany] = await conn.query(
+            'SELECT * FROM company WHERE company_id = ?',
+            [result.insertId]
+        );
+
+        await conn.commit();
+        return newCompany[0];
+
+    } catch (error) {
+        await conn.rollback();
+        console.error('Error finding or creating company:', error);
+        throw error;
+    } finally {
+        conn.release();
+    }
+}
+
+async function insertJob(jobData) {
+    const conn = await pool.getConnection();
+    try {
+        const fields = Object.keys(jobData).filter(key => jobData[key] !== undefined);
+        const placeholders = fields.map(() => '?').join(', ');
+        const values = fields.map(field => jobData[field]);
+        const query = `INSERT INTO job (${fields.join(', ')}) VALUES (${placeholders})`;
+
+        await conn.beginTransaction();
+        const [result] = await conn.query(query, values);
+        await conn.commit();
+
+        return {
+            jobId: result.insertId,
+            affected: result.affectedRows,
+            success: true
+        };
+    } catch (error) {
+        await conn.rollback();
+        console.error('Error inserting job:', error);
+        throw error;
+    } finally {
+        conn.release();
+    }
 }

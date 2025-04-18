@@ -1,50 +1,10 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { selectJobCounters } from "@store/jobCountersSlice";
 import styles from "./styles.module.css";
-
-interface JobCounters {
-    New: number;
-    Applied: number;
-    Saved: number;
-    Deleted: number;
-    Unknown: number;
-}
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { useSelector } from "react-redux";
 
 const JobSearch = () => {
-    const [jobsCounters, setJobsCounters] = useState<JobCounters>({
-        New: 0,
-        Applied: 0,
-        Saved: 0,
-        Deleted: 0,
-        Unknown: 0,
-    });
-
-    useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/jobs/status-count`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (!response.ok) {
-                    console.error("Failed to fetch jobs:", response.statusText);
-                    return;
-                }
-
-                const data: JobCounters = await response.json();
-                setJobsCounters(data);
-            } catch (error) {
-                console.error("Error fetching jobs:", error);
-            }
-        };
-
-        void fetchJobs();
-    }, []);
+    const jobsCounters = useSelector(selectJobCounters);
 
     return (<div className='card'>
             <div className='cardHeader'>

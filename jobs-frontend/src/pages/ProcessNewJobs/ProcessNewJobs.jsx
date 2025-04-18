@@ -1,22 +1,15 @@
 import {useEffect, useState} from "react";
-import {Link, useParams} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import styles from "./styles.module.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const ProcessNewJobs = () => {
-    const jobStatus = 'New';
-    const [view, setView] = useState("details");
     const [jobs, setJobs] = useState([]);
     const [selectedJobIndex, setSelectedJobIndex] = useState(0);
-    const [jobsCounters, setJobsCounters] = useState({
-        New: 0, Applied: 0, Saved: 0, Deleted: 0
-    });
 
     useEffect(() => {
         fetchJobs();
-        fetchJobCounters();
     }, []);
-
 
     useEffect(() => {
         const handleKeyPress = (event) => {
@@ -95,15 +88,21 @@ const ProcessNewJobs = () => {
 
     const fetchJobs = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/jobs?status=${jobStatus}`, {
-                method: "GET", headers: {
+            const API_BASE_URL = import.meta.env.VITE_API_URL;
+            const query = "SELECT * from job where status='New'";
+
+            const response = await fetch(`${API_BASE_URL}/api/db-query`, {
+                method: "POST",
+                headers: {
                     "Content-Type": "application/json",
                 },
+                body: JSON.stringify({
+                    query
+                })
             });
 
             if (!response.ok) {
-                console.error("Failed to fetch jobs:", response.statusText);
-                return;
+                throw new Error('Failed to save bookmark');
             }
 
             const fetchedJobs = await response.json();
@@ -114,44 +113,78 @@ const ProcessNewJobs = () => {
     };
 
     const saveJob = async () => {
-        if (Array.isArray(jobs) && jobs.length > 0) {
-            const selectedJob = jobs[selectedJobIndex];
-            console.log("Selected job:", selectedJob);
-            if (selectedJob) {
-                try {
-                    const updatedJob = await updateJob({...selectedJob, status: "Saved"});
-                    console.log("Job saved successfully:", updatedJob);
-                    await fetchJobs();
-                    await fetchJobCounters();
-                } catch (error) {
-                    console.error("Failed to save job:", error);
+        let job = jobs[selectedJobIndex];
+        if (job) {
+            try {
+                if (!job) return;
+                console.log("Saved job", job);
+                const query = `UPDATE job
+                               SET date_saved = NOW(),
+                                   status='Saved'
+                               where job_id = '${job.job_id}'`;
+                const response = await fetch(`${API_BASE_URL}/api/db-query`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        query
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save bookmark');
                 }
-            } else {
-                console.log("No job selected to save.");
+
+                await response.json();
+                const updatedJobs = jobs.filter((_, index) => index !== selectedJobIndex);
+                setJobs(updatedJobs);
+                if (selectedJobIndex >= updatedJobs.length) {
+                    setSelectedJobIndex(Math.max(0, updatedJobs.length - 1));
+                }
+            } catch (error) {
+                console.error("Failed to Saved job:", error);
             }
         } else {
-            console.log("jobs is not an array or is empty.");
+            console.log("No job selected to Saved.");
         }
     };
 
     const applyJob = async () => {
-        if (Array.isArray(jobs) && jobs.length > 0) {
-            const selectedJob = jobs[selectedJobIndex];
-            console.log("Selected job:", selectedJob);
-            if (selectedJob) {
-                try {
-                    const updatedJob = await updateJob({...selectedJob, status: "Applied"});
-                    console.log("Job saved successfully:", updatedJob);
-                    await fetchJobs();
-                    await fetchJobCounters();
-                } catch (error) {
-                    console.error("Failed to save job:", error);
+        let job = jobs[selectedJobIndex];
+        if (job) {
+            try {
+                if (!job) return;
+                console.log("date_applied job", job);
+                const query = `UPDATE job
+                               SET date_applied = NOW(),
+                                   status='Applied'
+                               where job_id = '${job.job_id}'`;
+                const response = await fetch(`${API_BASE_URL}/api/db-query`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        query
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save bookmark');
                 }
-            } else {
-                console.log("No job selected to save.");
+
+                await response.json();
+                const updatedJobs = jobs.filter((_, index) => index !== selectedJobIndex);
+                setJobs(updatedJobs);
+                if (selectedJobIndex >= updatedJobs.length) {
+                    setSelectedJobIndex(Math.max(0, updatedJobs.length - 1));
+                }
+            } catch (error) {
+                console.error("Failed to Applied job:", error);
             }
         } else {
-            console.log("jobs is not an array or is empty.");
+            console.log("No job selected to Applied.");
         }
     };
 
@@ -159,10 +192,32 @@ const ProcessNewJobs = () => {
         let job = jobs[selectedJobIndex];
         if (job) {
             try {
-                const updatedJob = await updateJob({...job, status: "Deleted"});
-                console.log("Job deleted successfully:", updatedJob);
-                await fetchJobs();
-                await fetchJobCounters();
+                if (!job) return;
+                console.log("Deleting job", job);
+                const query = `UPDATE job
+                               SET date_deleted = NOW(),
+                                   status='Deleted'
+                               where job_id = '${job.job_id}'`;
+                const response = await fetch(`${API_BASE_URL}/api/db-query`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        query
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save bookmark');
+                }
+
+                await response.json();
+                const updatedJobs = jobs.filter((_, index) => index !== selectedJobIndex);
+                setJobs(updatedJobs);
+                if (selectedJobIndex >= updatedJobs.length) {
+                    setSelectedJobIndex(Math.max(0, updatedJobs.length - 1));
+                }
             } catch (error) {
                 console.error("Failed to delete job:", error);
             }
@@ -170,27 +225,6 @@ const ProcessNewJobs = () => {
             console.log("No job selected to delete.");
         }
     };
-
-    const updateJob = async (job) => {
-        try {
-            console.log("Updating job", job);
-            const API_BASE_URL = import.meta.env.VITE_API_URL;
-            const response = await fetch(`${API_BASE_URL}/api/job`, {
-                method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(job),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to update job: ${response.statusText}`);
-            }
-
-            const updatedJob = await response.json();
-            return updatedJob; // Assuming `Job` is the expected type here
-        } catch (error) {
-            console.error("Error updating job:", error);
-            throw error; // Re-throw the error to let the caller handle it
-        }
-    };
-
 
     const pageDown = () => {
         if (Array.isArray(jobs) && jobs.length > 0) {
@@ -207,25 +241,6 @@ const ProcessNewJobs = () => {
             setSelectedJobIndex(nextIndex);
         } else {
             console.warn("jobs is not an array or is empty.");
-        }
-    };
-
-    const fetchJobCounters = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/jobs/status-count`, {
-                method: "GET", headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (!response.ok) {
-                console.error("Failed to fetch jobs:", response.statusText);
-                return;
-            }
-
-            setJobsCounters(await response.json());
-        } catch (error) {
-            console.error("Error fetching jobs:", error);
         }
     };
 
@@ -259,12 +274,13 @@ const ProcessNewJobs = () => {
         </div>
     );
 
-
     return (<div>
         <div className={styles.container}>
             {jobs.length === 0 && renderBanner()}
             {(jobs.length > 0) && (<div className={styles.viewContainer}>
-                    <h2 className={styles.detailHeader}>{jobs[selectedJobIndex]?.title}
+                    <h2 className={styles.detailHeader}>
+                        <Link to="/">🏠 </Link>
+                        {jobs[selectedJobIndex]?.title}
                         <span>{`Job ${jobs.findIndex((job) => job === jobs[selectedJobIndex]) + 1} of ${jobs.length}`}</span>
                     </h2>
                     <div className={styles.knowSkills}>
@@ -275,7 +291,7 @@ const ProcessNewJobs = () => {
                         <div className={styles.twoColumnLayout}>
                             <div className={styles.leftColumn}>
                                 {jobs[selectedJobIndex] && (<>
-                                    <div dangerouslySetInnerHTML={{__html: jobs[selectedJobIndex]?.html || ""}}/>
+                                    <div dangerouslySetInnerHTML={{__html: jobs[selectedJobIndex]?.job_post || ""}}/>
                                 </>)}
                             </div>
                             <div className={styles.rightColumn}>
@@ -285,14 +301,6 @@ const ProcessNewJobs = () => {
                                         Open in {jobs[selectedJobIndex]?.source}
                                     </button>
                                 </a>
-                                {/*// obsidian://open?vault=Job%20Search%20PM&file=Jobs%2FNew%2FIndeed-0c6cae417fc0ecc6*/}
-                                {/*obsidian://open?vault=Job%20Search%20PM&file=Jobs%2FApplied%2FActive911%2FSoftware%20Developer%2FIndeed%20Job%20Post*/}
-                                {/*<a href="obsidian://open?vault=Job%20Search%20PM&file=Jobs%2FNew%2FIndeed-0c6cae417fc0ecc6" target="_blank" rel="noopener noreferrer"*/}
-                                {/*   className="card-link">*/}
-                                {/*    <button className={styles.button} type="button">*/}
-                                {/*        Open in Obsidian*/}
-                                {/*    </button>*/}
-                                {/*</a>*/}
                                 <ul>
                                     <li><strong>Company:</strong> {jobs[selectedJobIndex]?.company}</li>
                                     <li>
@@ -301,8 +309,6 @@ const ProcessNewJobs = () => {
                                         <a href={jobs[selectedJobIndex]?.link} target="_blank" rel="noopener noreferrer"
                                            className="card-link">
                                             Open in {jobs[selectedJobIndex]?.source}
-
-
                                         </a>
                                     </li>
                                     <li>

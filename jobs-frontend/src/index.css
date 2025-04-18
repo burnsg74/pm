@@ -11,6 +11,7 @@
 
 html, body, #root, main {
   height: 100%;
+  min-height: 100vh;
   font-family: 'Arial', sans-serif;
   background-color: #f4f7fa;
   color: #333;
@@ -23,6 +24,7 @@ body {
   background-color: var(--main-background-color);
   color: var(--nav-color);
   margin: 0;
+  min-height: 100vh;
 }
 
 a {
@@ -42,6 +44,7 @@ main {
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  min-height: 100vh;
 }
 
 h2 {
@@ -82,4 +85,8 @@ p {
   margin-inline-start: 0;
   margin-inline-end: 0;
   unicode-bidi: isolate;
+}
+
+.tox-promotion {
+  display: none !important;
 }
