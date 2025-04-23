@@ -1,3 +1,11 @@
+/* Header content styles */
+.headerContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px; /* Ensures a minimum spacing of 10px between span and icon */
+}
+
 .jobBoardLinks {
     display: grid;
     gap: 8px;
@@ -16,33 +24,15 @@
     text-decoration: underline;
 }
 
-/* Header content styles */
-.headerContent {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
 /* Add button styles */
 .addButton {
-    background-color: #4a90e2;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    font-size: 18px;
-    line-height: 1;
+    color: darkgrey;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease;
+    margin-left: 10px; /* Guarantees spacing even if "gap" is not supported */
 }
 
 .addButton:hover {
-    background-color: #1f68c1;
+    color: #1f68c1;
 }
 
 /* Modal styles */

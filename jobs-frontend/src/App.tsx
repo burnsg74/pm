@@ -90,7 +90,6 @@ const App: FC = () => {
           <Route path="/" element={<Home />} />
           <Route path="/jobs/:jobStatus" element={<Jobs />} />
           <Route path="/notes" element={<Notes />} />
-          <Route path="/jobs/process-new-jobs" element={<ProcessNewJobs />} />
         </Routes>
       </main>
     </>

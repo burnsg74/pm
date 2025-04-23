@@ -9,7 +9,7 @@ const Home = () => {
             <JobSearch/>
             <UnemploymentStatus/>
             <JobBoards/>
-            <Reference/>
+            {/*<Reference/>*/}
         </div>);
 };
 

@@ -8,7 +8,7 @@ const JobSearch = () => {
 
     return (<div className='card'>
             <div className='cardHeader'>
-                <Link to={'/jobs/process-new-jobs'}>Job Search </Link>
+                <Link to={'/jobs/New'}>Job Search </Link>
             </div>
             <div className='cardBody'>
                 <table className={`${styles.jobSearchTable}`}>
@@ -26,12 +26,8 @@ const JobSearch = () => {
                             <td> {jobsCounters.Applied} </td>
                         </tr>
                         <tr>
-                            <th>Deleted :</th>
+                            <th><Link to={'/jobs/Deleted'}>Deleted : </Link></th>
                             <td> {jobsCounters.Deleted} </td>
-                        </tr>
-                        <tr>
-                            <th>Unknown :</th>
-                            <td> {jobsCounters.Unknown} </td>
                         </tr>
                     </tbody>
                 </table>

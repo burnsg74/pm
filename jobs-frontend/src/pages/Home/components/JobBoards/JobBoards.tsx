@@ -2,6 +2,8 @@ import { FC, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, u
 import styles from "./styles.module.css";
 import {useAppSelector, useAppDispatch} from '@store/hooks';
 import {selectAllBookmarks, addBookmark} from '@store/bookmarkSlice';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faPlus} from '@fortawesome/free-solid-svg-icons';
 
 const JobBoards: FC = () => {
     const jobBoardBookmarks = useAppSelector(state =>
@@ -98,13 +100,7 @@ const JobBoards: FC = () => {
             <div className='cardHeader'>
                 <div className={styles.headerContent}>
                     <span>Job Boards</span>
-                    <button 
-                        className={styles.addButton}
-                        onClick={handleOpenModal}
-                        title="Add new job board"
-                    >
-                        +
-                    </button>
+                    <FontAwesomeIcon onClick={handleOpenModal} icon={faPlus} className={styles.addButton}/>
                 </div>
             </div>
             <div className='cardBody'>

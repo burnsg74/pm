@@ -2,18 +2,17 @@ import {chromium} from "@playwright/test";
 import {execSync} from 'child_process';
 import dotenv from "dotenv";
 import fs from "fs";
-import matter from 'gray-matter';
-import path from "node:path";
 import Turndown from "turndown";
 import * as mysql from "mysql2/promise";
 
+console.log("Starting...", process.env.NODE_ENV);
 dotenv.config({path: `../../.env.${process.env.NODE_ENV ?? 'development'}`});
 
 // --- Constants ---
 const PROJECT_PATH = '/Users/greg/Library/CloudStorage/Dropbox/Notebooks/Job-Search/Jobs';
 const FROM_AGE = '1'; // in days last, 1, 3
-// const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
-const SEARCH_TERMS = ["Laravel PHP Developer"]
+const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
+// const SEARCH_TERMS = ["Laravel PHP Developer"]
 const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
 const SKILLS_UNKNOWN = [".Net", "ASP.NET", "C#", "C++", "Drupal", "Flutter", "Golang", "Kotlin", "MS SQL", "MSSQL", "Next.js", "Spring", "Swift", "VB", "VB.Net", "Visual Basic", "Wordpress"].map(escapeRegExp);
 const VERIFICATION_TEXT = "Additional Verification Required";
@@ -132,12 +131,14 @@ try {
         }
 
         jobData.skills = getSkills(jobData.post_html, SKILLS_KNOWN);
+        jobData.post_html = highlightWords(jobData.post_html);
 
         const company = await findOrCreateCompany(jobData.company);
         console.log("Company:", company);
 
         await insertJob({
             company_id: company.company_id,
+            company_name: company.name,
             source: "Indeed",
             jk: newJob.jk,
             title: jobData.title,
@@ -153,6 +154,7 @@ try {
         });
     }
     await browser.close();
+    console.log("All Done. Exiting...");
     process.exit(0);
 } catch (error) {
     console.error("Error:", error);
@@ -185,7 +187,7 @@ async function getExistingJobKeys() {
     const conn = await pool.getConnection();
     try {
         const [rows] = await conn.query(
-            'SELECT jk FROM job WHERE date_new >= DATE_SUB(NOW(), INTERVAL 2 WEEK)'
+            'SELECT jk FROM job WHERE date_new >= DATE_SUB(NOW(), INTERVAL 4 WEEK)'
         );
         rows.forEach(row => existingJobKeys.push(row.jk));
     } catch (error) {
@@ -275,13 +277,6 @@ async function getSalary() {
     }
 
 }
-
-
-
-// Cleanup
-await browser.close();
-console.log("All Done. Exiting...");
-process.exit(0);
 
 async function pauseInMs(pauseInMs) {
     console.log("Pausing...");
@@ -442,10 +437,12 @@ async function findOrCreateCompany(companyName, noteId = null) {
 async function insertJob(jobData) {
     const conn = await pool.getConnection();
     try {
+
         const fields = Object.keys(jobData).filter(key => jobData[key] !== undefined);
+
         const placeholders = fields.map(() => '?').join(', ');
         const values = fields.map(field => jobData[field]);
-        const query = `INSERT INTO job (${fields.join(', ')}) VALUES (${placeholders})`;
+        const query = `INSERT IGNORE INTO job (${fields.join(', ')}) VALUES (${placeholders})`;
 
         await conn.beginTransaction();
         const [result] = await conn.query(query, values);
@@ -463,4 +460,18 @@ async function insertJob(jobData) {
     } finally {
         conn.release();
     }
+}
+
+function highlightWords(text) {
+    if (!text) return "";
+
+    const regex = new RegExp(`(?<!\\w)(${SKILLS_KNOWN.join("|")})(?!\\w)|(?<!\\w)(${SKILLS_UNKNOWN.join("|")})(?!\\w)`, "gi",);
+    return text.replace(regex, (match, p1, p2) => {
+        if (p1) {
+            return `<span class="highlight-green">${match}</span>`;
+        } else if (p2) {
+            return `<span class="highlight-red">${match}</span>`;
+        }
+        return match;
+    });
 }

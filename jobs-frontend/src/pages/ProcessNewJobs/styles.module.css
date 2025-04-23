@@ -7,8 +7,6 @@
 }
 
 .viewContainer {
-    /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
-    /*border-top-right-radius: 8px;*/
     overflow: hidden;
 }
 
@@ -133,47 +131,56 @@
 }
 
 .detailsContainer {
-    padding: 10px 15px;
-    border-bottom: 1px solid #e0e0e0;
-    background-color: #fff;
-    transition: background-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
-.detailsContainer .twoColumnLayout {
+.threeColumnLayout {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
+    grid-template-columns: 1fr 2fr 1fr; /* Left, Middle, Right */
+    gap: 5px;
+    align-items: flex-start;
+    padding: 0 5px;
 }
 
-.detailsContainer li:last-child {
-    border-bottom: none;
+.leftColumn, .middleColumn, .rightColumn {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.leftColumn {
+    max-width: 448px;
+}
+
+.middleColumn {
+    overflow: auto;
 }
 
 .detailHeader {
+    align-items: center;
     background-color: #2c3e50;
     color: white;
-    padding: 12px 15px;
-    margin: 0;
+    display: flex;
     font-size: 1.2em;
     font-weight: bold;
-    border-bottom: 1px solid #ddd;
+    height: 40px;
+    justify-content: space-between;
+    line-height: 1.2;
+    margin: 0;
+    padding: 0 15px;
+    position: relative;
 }
 
 .knowSkills {
     display: flex;
     color: darkgreen;
     font-size: 1.1em;
-    margin: 5px 20px
-}
-
-.detailHeader {
-    position: relative; /* Add this to the parent element */
-}
-
-.detailHeader span {
-    position: absolute;
-    right: 0;
-    margin-right: 10px;
+    margin: 5px 20px;
+    min-height: 25px;
 }
 
 .leftColumn ul {
@@ -212,4 +219,43 @@
 .button:active {
     background-color: #1B2936;
     transform: scale(0.95);
+}
+
+.jobNavigation {
+    display: flex; /* Enables flexbox layout */
+    align-items: center; /* Vertically centers the items within the container */
+    justify-content: center; /* Horizontally centers the items within the container */
+    gap: 8px; /* Adds space between the elements */
+    white-space: nowrap; /* Prevents wrapping of the text */
+}
+
+
+.jobNavigation .icon {
+    cursor: pointer;
+    padding: 0 5px;
+    transition: color 0.3s ease;
+}
+
+.jobNavigation .icon:hover {
+    color: #007bff; /* Change color on hover to indicate interactivity */
+}
+
+.jobNavigation .text {
+    white-space: nowrap; /* Prevents wrapping of the text */
+}
+
+.jobTitle {
+    padding: 5px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #e6e6e6;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activeJob {
+    background-color: #0078d4;
+    color: #fff;
+    font-weight: bold;
 }
