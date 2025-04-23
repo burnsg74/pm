@@ -63,7 +63,7 @@ const JobBoards: FC = () => {
             }
 
             // Get the inserted bookmark ID
-            const getBookmarkQuery = `SELECT * FROM Bookmark WHERE name = '${newBookmark.name}' AND url = '${newBookmark.url}' ORDER BY bookmark_id DESC LIMIT 1`;
+            const getBookmarkQuery = `SELECT * FROM Bookmark WHERE name = '${newBookmark.name}' AND url = '${newBookmark.url}' ORDER BY name DESC LIMIT 1`;
             const getResponse = await fetch(`${API_BASE_URL}/api/db-query`, {
                 method: "POST",
                 headers: {

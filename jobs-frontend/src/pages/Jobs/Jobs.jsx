@@ -6,10 +6,11 @@ import {faChevronLeft, faChevronRight} from '@fortawesome/free-solid-svg-icons';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const Jobs = () => {
-    const { jobStatus= 'New' } = useParams();
+    const {jobStatus = 'New'} = useParams();
     console.log("Status1", jobStatus);
     const [jobs, setJobs] = useState([]);
     const [selectedJobIndex, setSelectedJobIndex] = useState(0);
+    const [view, setView] = useState("table");
 
     useEffect(() => {
         console.log("Status", jobStatus);
@@ -94,7 +95,7 @@ const Jobs = () => {
     const fetchJobs = async () => {
         try {
             const API_BASE_URL = import.meta.env.VITE_API_URL;
-            const query = "SELECT * from job where status='"+jobStatus+"'";
+            const query = "SELECT * from job where status='" + jobStatus + "'";
             const response = await fetch(`${API_BASE_URL}/api/db-query`, {
                 method: "POST",
                 headers: {
@@ -278,101 +279,141 @@ const Jobs = () => {
         </div>
     );
 
-    return (<div>
+    return (
+    <div>
         <div className={styles.container}>
             {jobs.length === 0 && renderBanner()}
-            {(jobs.length > 0) && (<div className={styles.viewContainer}>
+            {jobs.length > 0 && (
+                <div className={styles.viewContainer}>
                     <h2 className={styles.detailHeader}>
                         <span>
-                        <Link to="/">🏠 </Link>
-                        {jobs[selectedJobIndex]?.company_name} :: {jobs[selectedJobIndex]?.title}
+                            <Link to="/">🏠 </Link>
+                            {jobs[selectedJobIndex]?.company_name} :: {jobs[selectedJobIndex]?.title}
                         </span>
                         <span className={styles.jobNavigation}>
-                            <FontAwesomeIcon onClick={goToPrevJob} icon={faChevronLeft} className={styles.icon}/>
+                            <FontAwesomeIcon onClick={goToPrevJob} icon={faChevronLeft} className={styles.icon} />
                             {`Job ${jobs.findIndex((job) => job === jobs[selectedJobIndex]) + 1} of ${jobs.length}`}
-                            <FontAwesomeIcon onClick={goToPrevJob} icon={faChevronRight}/>
+                            <FontAwesomeIcon onClick={goToNextJob} icon={faChevronRight} />
                         </span>
                     </h2>
-                    <div className={styles.knowSkills}>
-                        {jobs[selectedJobIndex].skills}
+                    <div className={styles.skillsHeader}>
+                        <div className={styles.knowSkills}>
+                            <span className={styles.knowSkillsList}> {jobs[selectedJobIndex]?.skills} </span>
+                        </div>
+                        <div className={styles.views}>
+                            <span
+                                onClick={() => setView("table")}
+                                className={view === "table" ? styles.active : ""}
+                            >
+                                Table
+                            </span>
+                            <span
+                                onClick={() => setView("detail")}
+                                className={view === "detail" ? styles.active : ""}
+                            >
+                                Detail
+                            </span>
+                        </div>
                     </div>
 
                     <div className={styles.detailsContainer}>
-                        <div className={styles.threeColumnLayout}>
-                            <div className={styles.leftColumn}>
-                                {/* Left Column: Job Title */}
-                                {jobs[selectedJobIndex] && (
+                        {(jobs.length > 0) && view === "table" && (
+                            <table className={`${styles.jobSearchTable}`}>
+                                <thead>
+                                    <tr>
+                                        <th>Company</th>
+                                        <th>Title</th>
+                                        <th>Skills</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Array.isArray(jobs) &&
+                                        jobs.map((job, index) => (
+                                            <tr
+                                                key={job.id}
+                                                className={index === selectedJobIndex ? styles.selectedRow : ""}
+                                            >
+                                                <td>{job.company_name}</td>
+                                                <td>{job.title}</td>
+                                                <td>{job.skills}</td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        )}
+
+                        {jobs.length > 0 && view === "detail" && (
+                            <div className={styles.threeColumnLayout}>
+                                <div className={styles.leftColumn}>
                                     <div className={styles.jobList}>
                                         {jobs.map((job, index) => (
                                             <div
                                                 key={job.job_id}
-                                                className={`${styles.jobTitle} ${index === selectedJobIndex ? styles.activeJob : ''}`}
+                                                className={`${styles.jobTitle} ${
+                                                    index === selectedJobIndex ? styles.activeJob : ""
+                                                }`}
                                                 onClick={() => setSelectedJobIndex(index)}
                                             >
                                                 {job.title}
                                             </div>
                                         ))}
                                     </div>
-                                )}
-                            </div>
-                            <div className={styles.middleColumn}>
-                                {/* Middle Column: Job Post */}
-                                {jobs[selectedJobIndex] && (
+                                </div>
+                                <div className={styles.middleColumn}>
                                     <div
                                         dangerouslySetInnerHTML={{
                                             __html: jobs[selectedJobIndex]?.job_post || "No job description available.",
                                         }}
                                     />
-                                )}
-                            </div>
-                            <div className={styles.rightColumn}>
-                                {/* Right Column: Details and Actions */}
-                                <a
-                                    href={jobs[selectedJobIndex]?.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="card-link"
-                                >
-                                    <button className={styles.button} type="button">
-                                        Open in {jobs[selectedJobIndex]?.source}
-                                    </button>
-                                </a>
-                                <ul>
-                                    <li>
-                                        <strong>Company:</strong> {jobs[selectedJobIndex]?.company_name}
-                                    </li>
-                                    <li>
-                                        <strong>Source:</strong>&nbsp;
-                                        <a
-                                            href={jobs[selectedJobIndex]?.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="card-link"
-                                        >
+                                </div>
+                                <div className={styles.rightColumn}>
+                                    <a
+                                        href={jobs[selectedJobIndex]?.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="card-link"
+                                    >
+                                        <button className={styles.button} type="button">
                                             Open in {jobs[selectedJobIndex]?.source}
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <strong>Salary:</strong>{" "}
-                                        {`${formatMoney(jobs[selectedJobIndex]?.salary_min)} - ${formatMoney(
-                                            jobs[selectedJobIndex]?.salary_max
-                                        )}`}
-                                    </li>
-                                    <li>
-                                        <strong>Date Posted:</strong>{" "}
-                                        {formatDate(jobs[selectedJobIndex]?.date_posted)}
-                                    </li>
-                                    <li>
-                                        <strong>Status:</strong> {jobs[selectedJobIndex]?.status}
-                                    </li>
-                                </ul>
+                                        </button>
+                                    </a>
+                                    <ul>
+                                        <li>
+                                            <strong>Company:</strong> {jobs[selectedJobIndex]?.company_name}
+                                        </li>
+                                        <li>
+                                            <strong>Source:</strong>&nbsp;
+                                            <a
+                                                href={jobs[selectedJobIndex]?.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="card-link"
+                                            >
+                                                Open in {jobs[selectedJobIndex]?.source}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <strong>Salary:</strong>{" "}
+                                            {`${formatMoney(jobs[selectedJobIndex]?.salary_min)} - ${formatMoney(
+                                                jobs[selectedJobIndex]?.salary_max
+                                            )}`}
+                                        </li>
+                                        <li>
+                                            <strong>Date Posted:</strong> {formatDate(jobs[selectedJobIndex]?.date_posted)}
+                                        </li>
+                                        <li>
+                                            <strong>Status:</strong> {jobs[selectedJobIndex]?.status}
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             )}
         </div>
-    </div>);
+    </div>
+);
 };
 
 export default Jobs;
