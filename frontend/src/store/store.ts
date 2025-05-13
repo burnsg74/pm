@@ -1,19 +1,23 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import bookmarkReducer from './bookmarkSlice';
 import jobCountersReducer from './jobCountersSlice';
+import jobsReducer from './jobsSlice';
 import { BookmarkState } from '../types/bookmark';
 import { JobCountersState } from '../types/jobCounters';
+import { JobsState } from './jobsSlice';
 
 // Define the root state interface
 interface RootState {
   bookmarks: BookmarkState;
   jobCounters: JobCountersState;
+  jobs: JobsState;
 }
 
 // Create the root reducer
 const rootReducer = combineReducers({
   bookmarks: bookmarkReducer,
   jobCounters: jobCountersReducer,
+  jobs: jobsReducer,
 });
 
 // Function to load state from localStorage
