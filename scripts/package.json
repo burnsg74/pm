@@ -1,0 +1,24 @@
+{
+  "name": "scripts",
+  "version": "0.0.1",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "get-jobs-from-indeed-dev": "NODE_ENV=development node get-jobs-from-indeed/get-jobs-from-indeed.js",
+    "get-jobs-from-linkedin-dev": "NODE_ENV=development node get-jobs-from-linkedin.js",
+    "get-jobs-from-indeed-prod": "NODE_ENV=production node get-jobs-from-indeed/get-jobs-from-indeed.js",
+    "get-jobs-from-linkedin-prod": "NODE_ENV=production node get-jobs-from-linkedin.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.5"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "sqlite3": "^5.1.7"
+  }
+}
