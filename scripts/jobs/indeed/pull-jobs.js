@@ -1,6 +1,13 @@
 import ChromeBrowser from "./lib/ChromeBrowser.js";
 
 const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:5174';
+const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
+const SKILLS_UNKNOWN = [".Net", "ASP.NET", "C#", "C++", "Drupal", "Flutter", "Golang", "Kotlin", "MS SQL", "MSSQL", "Next.js", "Spring", "Swift", "VB", "VB.Net", "Visual Basic", "Wordpress"].map(escapeRegExp);
+// const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
+const SEARCH_TERMS = [
+    "PHP Developer NOT Full Stack",
+];
+
 const INDEED_CONFIG = {
     BASE_URL: 'https://www.indeed.com',
     SELECTORS: {
@@ -19,15 +26,78 @@ const INDEED_CONFIG = {
     QUERIES: [
         {
             query: '',
-            fromAge: 3,
+            fromAge: 1,
             location: 'Newport, OR',
             radius: 10,
             from: 'searchOnDesktopSerp',
             vjk: '31882e878e2c08e0',
             isLocal: true,
+        },
+        {
+            query: '',
+            fromAge: 1,
+            location: 'Waldport, OR',
+            radius: 10,
+            from: 'searchOnDesktopSerp',
+            vjk: '31882e878e2c08e0',
+            isLocal: true,
+        },
+        {
+            query: 'Full Stack Engineer OR Full Stack Developer',
+            fromAge: 1,
+            location: 'Remote',
+            radius: '',
+            from: 'searchOnDesktopSerp',
+            vjk: '31882e878e2c08e0',
+            isLocal: false,
+        },
+        {
+            query: 'Web Developer NOT Frontend NOT Backend NOT PHP NOT Full Stack',
+            fromAge: 1,
+            location: 'Remote',
+            radius: '',
+            from: 'searchOnDesktopSerp',
+            vjk: '31882e878e2c08e0',
+            isLocal: false,
+        },
+        {
+            query: 'Backend Developer NOT Frontend NOT Full Stack',
+            fromAge: 1,
+            location: 'Remote',
+            radius: '',
+            from: 'searchOnDesktopSerp',
+            vjk: '31882e878e2c08e0',
+            isLocal: false,
+        },
+
+        {
+            query: 'Frontend Developer NOT Backend NOT Full Stack',
+            fromAge: 1,
+            location: 'Remote',
+            radius: '',
+            from: 'searchOnDesktopSerp',
+            vjk: '31882e878e2c08e0',
+            isLocal: false,
         }
+        ,
+        {
+            query: 'PHP Developer NOT Full Stack',
+            fromAge: 1,
+            location: 'Remote',
+            radius: '',
+            from: 'searchOnDesktopSerp',
+            vjk: '31882e878e2c08e0',
+            isLocal: false,
+        }
+
     ]
 };
+
+// https://www.indeed.com/jobs?q=Senior+Full+Stack+Engineer&l=Remote&fromage=1&sc=0kf%3Aattr%28DSQF7%29%3B&from=searchOnDesktopSerp&vjk=8520f408f65c057f
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]#\\]/g, "\\$&");
+}
 
 async function fetchExistingJobKeys() {
     const sql = `SELECT jk
@@ -143,7 +213,7 @@ async function main() {
             console.log(`Job Count: ${jobCount}`);
             if (!jobCount || jobCount === 0) {
                 console.log('No jobs found');
-                break;
+                continue;
             }
 
             let pageNumber = 0;
@@ -155,7 +225,7 @@ async function main() {
                 console.log(jobLinks.length);
                 if (!jobLinks || jobLinks.length === 0) {
                     console.log('No more jobs found');
-                    break;
+                    continue;
                 }
 
                 for (const jobLink of jobLinks) {
@@ -217,6 +287,15 @@ async function main() {
                             console.log('From HTML');
                         }
 
+                        let requirements = await extractSkills(jobDetailTab);
+                        if (requirements && requirements.length > 0) {
+                            const requirementsList = `<div class="requirements-section"><h3>Requirements:</h3><ul>${requirements.map(skill => `<li>${skill}</li>`).join('')} </ul> </div>`;
+                            jobData.post_html = requirementsList + jobData.post_html;
+                        }
+
+                        jobData.skills = getSkills(jobData.post_html, SKILLS_KNOWN);
+                        jobData.post_html = highlightWords(jobData.post_html);
+
                         try {
                             await insertJob(jobData);
                         } catch (error) {
@@ -258,6 +337,53 @@ async function main() {
         } catch (error) {
             return false
         }
+    }
+
+    async function extractSkills(page) {
+        const skills = await page.evaluate(() => {
+            const extractedSkills = [];
+            const skillButtons = document.querySelectorAll('li[data-testid="list-item"] button');
+            skillButtons.forEach(button => {
+                const skillName = button.querySelector('span');
+                if (skillName) {
+                    extractedSkills.push(skillName.textContent.trim());
+                }
+            });
+
+            return extractedSkills;
+        });
+
+        return skills;
+    }
+
+    function getSkills(text, skills) {
+        if (!text) return "";
+
+        const regex = new RegExp(`(?<!\\w)(${skills.join("|")})(?!\\w)`, "gi");
+        const foundSkills = new Set();
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            foundSkills.add(match[0]);
+        }
+        return Array.from(foundSkills).join(", ");
+    }
+
+    function highlightWords(text) {
+        if (!text) return "";
+
+        const regex = new RegExp(`(?<!\\w)(${SKILLS_KNOWN.join("|")})(?!\\w)|(?<!\\w)(${SKILLS_UNKNOWN.join("|")})(?!\\w)`, "gi",);
+        return text.replace(regex, (match, p1, p2) => {
+            if (p1) {
+                return `<span class="highlight-green">${match}</span>`;
+            } else if (p2) {
+                return `<span class="highlight-red">${match}</span>`;
+            }
+            return match;
+        });
+    }
+
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]#\\]/g, "\\$&");
     }
 
     async function getSalary(jobDetailTab) {
