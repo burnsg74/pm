@@ -49,7 +49,7 @@ const Jobs: FC = () => {
         'ArrowUp': goToPrevJob,
         'j': goToNextJob,
         'PageDown': pageDown,
-        'k': goToNextJob,
+        'k': goToPrevJob,
         'PageUp': pageUp,
         's': saveJob,
         'd': deleteJob,

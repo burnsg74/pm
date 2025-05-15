@@ -98,15 +98,16 @@ class ChromeBrowser {
         const {DEBUG_PORT, CUSTOM_DATA_DIR, PROFILE, BASE_URL} = ChromeBrowser.CONFIG;
         execSync(
             `open -na "Google Chrome" --args \
-            --remote-debugging-port=${DEBUG_PORT} \
-            --user-data-dir="${CUSTOM_DATA_DIR}" \
-            --profile-directory="${PROFILE}" \
-            --no-first-run \
-            --no-default-browser-check \
-            --disable-features=IsolateOrigins \
-            ${BASE_URL}`
-        );
-    }
+        --remote-debugging-port=${DEBUG_PORT} \
+        --user-data-dir="${CUSTOM_DATA_DIR}" \
+        --profile-directory="${PROFILE}" \
+        --no-first-run \
+        --no-default-browser-check \
+        --disable-features=IsolateOrigins \
+        --disable-notifications \
+        ${BASE_URL}`
+    );
+}
 
     closeExistingChromeInstances() {
         try {

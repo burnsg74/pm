@@ -54,8 +54,15 @@ h2 {
 .highlight-green {
     background-color: #84ff00;
     border-radius: 5px;
-    padding: 0 4px 4px;
+    padding: 0 4px 0;
     box-shadow: #62ba04 0 0 2px;
+}
+
+.highlight-red {
+    background-color: #fc9999;
+    border-radius: 5px;
+    padding: 0 4px 0;
+    box-shadow: #651010 0 0 2px;
 }
 
 .card {
@@ -90,3 +97,4 @@ p {
 .tox-promotion {
     display: none !important;
 }
+

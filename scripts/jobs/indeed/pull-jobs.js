@@ -1,13 +1,12 @@
 import ChromeBrowser from "./lib/ChromeBrowser.js";
+import * as dotenv from 'dotenv';
 
-const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:5174';
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+dotenv.config({ path: envFile });
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5174';
+
 const SKILLS_KNOWN = ["HTML", "JavaScript", "CSS", "NoSQL", "SQL", "React", "Vue", "Node.js", "Node", "Python", "PHP", "Git", "AWS", "TypeScript", "Svelte", "Flutter", "Django", "Laravel", "jQuery", "SCSS", "Jest", "Cypress", "MySQL", "Javascript", "CI/CD", "Jira", "DynamoDB", "Linux", "Vuex", "Redis", "PostgreSQL"].map(escapeRegExp);
 const SKILLS_UNKNOWN = [".Net", "ASP.NET", "C#", "C++", "Drupal", "Flutter", "Golang", "Kotlin", "MS SQL", "MSSQL", "Next.js", "Spring", "Swift", "VB", "VB.Net", "Visual Basic", "Wordpress"].map(escapeRegExp);
-// const SEARCH_TERMS = ["Backend Developer", "Frontend Developer", "PHP Developer", "Senior Full Stack Engineer", "Senior Full Stack Developer", "Web Developer"];
-const SEARCH_TERMS = [
-    "PHP Developer NOT Full Stack",
-];
-
 const INDEED_CONFIG = {
     BASE_URL: 'https://www.indeed.com',
     SELECTORS: {
@@ -93,7 +92,10 @@ const INDEED_CONFIG = {
     ]
 };
 
-// https://www.indeed.com/jobs?q=Senior+Full+Stack+Engineer&l=Remote&fromage=1&sc=0kf%3Aattr%28DSQF7%29%3B&from=searchOnDesktopSerp&vjk=8520f408f65c057f
+function getRandomDelay(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]#\\]/g, "\\$&");
@@ -175,6 +177,7 @@ async function insertJob(jobData) {
             throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
         }
 
+        existingJobKeys.push(jobData.jk);
         const result = await response.json();
         console.log('Insert successful:', result);
         return result;
@@ -184,13 +187,14 @@ async function insertJob(jobData) {
     }
 }
 
+let existingJobKeys = [];
 async function main() {
     const browser = new ChromeBrowser();
     await browser.initialize();
 
     try {
         // Fetch existing job keys from the database
-        const existingJobKeys = await fetchExistingJobKeys();
+        existingJobKeys = await fetchExistingJobKeys();
         console.log(`Found ${existingJobKeys.length} existing jobs in the database`);
 
         const jobListTab = await browser.getTab(1);
@@ -201,10 +205,10 @@ async function main() {
         for (const query of INDEED_CONFIG.QUERIES) {
             console.log('Query:', query);
 
-            await jobListTab.goto(`${INDEED_CONFIG.BASE_URL}/jobs?q=${query.query}&l=${query.location}&fromage=${query.fromAge}&radius=${query.radius}&from=${query.from}&vjk=${query.vjk}`);
+            await jobListTab.goto(`${INDEED_CONFIG.BASE_URL}/jobs?q=${query.query}&l=${query.location}&fromage=${query.fromAge}&radius=${query.radius}&from=${query.from}`);
             await jobListTab.waitForSelector('#jobsearch-Main', {timeout: 30000});
             console.log('Sleeping for 1 seconds...');
-            await browser.delay(1000);
+            await browser.delay(getRandomDelay(2000, 4000));
 
             const jobCountElement = await jobListTab.$('.jobsearch-JobCountAndSortPane-jobCount');
             const jobCountText = jobCountElement ? await jobCountElement.textContent() : '';
@@ -222,10 +226,10 @@ async function main() {
                 console.log(`Page Number: ${pageNumber}`);
                 const jobLinks = await jobListTab.$$('div.nonRecommendation-section a.jcs-JobTitle');
 
-                console.log(jobLinks.length);
+                console.log(`Found ${jobLinks.length} jobs on page`);
                 if (!jobLinks || jobLinks.length === 0) {
                     console.log('No more jobs found');
-                    continue;
+                    break;  // Break out of the while loop when no jobs are found
                 }
 
                 for (const jobLink of jobLinks) {
@@ -314,7 +318,8 @@ async function main() {
                     await jobListTab.waitForSelector('#jobsearch-Main', {timeout: 30000});
                     await browser.delay(1000);
                 } else {
-                    break;
+                    console.log('No next page link found - ending pagination');
+                    break;  // Break out of the while loop when there's no next page
                 }
             }
 
