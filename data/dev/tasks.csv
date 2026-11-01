@@ -1,0 +1,19 @@
+id,title,status,project,context,due,start,starred,waiting_for,waiting_since,notes,created,updated,completed
+t-in1,Look into standing desk converters,inbox,,,,,,,,,2026-10-31T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-in2,Reply to Sam about Thursday,inbox,,,,,,,,,2026-10-31T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-in3,Idea: automate the weekly review notes,inbox,,,,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-n1,"Press j and k to move, x to complete this task",next,p-welcome,computer,2026-10-31,,1,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-n2,Press a to capture a task: try  Buy cables @errands #home due:fri,next,p-welcome,computer,,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-n3,Open the calendar with gc and move around with h j k l,next,p-welcome,computer,2026-11-01,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-n4,Measure the wall for the shelf,next,p-office,home,2026-11-03,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-n5,Order cable tray,next,p-office,computer,,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-n6,Pick up light bulbs,next,,errands,,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-n7,Call the dentist to book a cleaning,next,,calls,2026-10-30,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-w1,Chair delivery,waiting,p-office,,,,,Office Co,2026-10-22,,2026-10-22T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-w2,Quote for the monitor arm,waiting,p-office,,,,,Jordan,2026-10-29,,2026-10-29T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-s1,Start a dated-tickler example: this appears in 5 days,next,p-welcome,computer,,2026-11-05,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-s2,Book flights for the conference,next,,computer,2026-11-21,2026-11-08,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-m1,Build a standing desk from scratch,someday,p-office,,,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-m2,Take a pottery class,someday,,,,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+t-d1,Install the PM app,done,p-welcome,,,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,2026-10-31T21:53:00.900Z
+t-d2,Clear the desk,done,p-office,,,,,,,,2026-10-30T21:53:00.900Z,2026-10-31T21:53:00.899Z,2026-10-28T21:53:00.900Z

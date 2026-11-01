@@ -1,0 +1,5 @@
+id,title,status,outcome,area,notes,created,updated,completed
+p-welcome,Learn the PM app,active,I can run my whole week from the keyboard,Work,Press ? for every key. Press Cmd+P to jump anywhere.,2026-10-29T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+p-office,Home office setup,active,A desk I actually want to work at,Home,,2026-10-21T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+p-passport,Renew passport,active,Passport valid for 10 more years,Admin,Deliberately has no next action: it shows up as stalled in the weekly review.,2026-10-11T21:53:00.900Z,2026-10-31T21:53:00.899Z,
+p-guitar,Learn fingerstyle guitar,someday,Play one full song for friends,Personal,,2026-09-21T21:53:00.900Z,2026-10-31T21:53:00.899Z,

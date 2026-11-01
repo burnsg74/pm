@@ -1,0 +1,195 @@
+/* Palette: Zed "One Dark" / "One Light". Everything else reads these variables. */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #282c34;
+  --bg-panel: #21252b;
+  --bg-elev: #2c313a;
+  --bg-hover: #2f343e;
+  --bg-sel: #3a4150;
+  --bg-sel-dim: #31363f;
+  --border: #181a1f;
+  --border-soft: #3b4048;
+  --fg: #abb2bf;
+  --fg-dim: #9aa3b5;
+  --fg-faint: #8891aa;
+  --fg-bright: #dce0e5;
+  --accent: #61afef;
+  --accent-bg: rgba(97, 175, 239, 0.16);
+  --green: #98c379;
+  --red: #e06c75;
+  --yellow: #e5c07b;
+  --purple: #c678dd;
+  --orange: #d19a66;
+  --cyan: #56b6c2;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --scrim: rgba(10, 12, 16, 0.55);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fafafa;
+  --bg-panel: #f0f0f1;
+  --bg-elev: #ffffff;
+  --bg-hover: #e8e9eb;
+  --bg-sel: #d9e4f7;
+  --bg-sel-dim: #e4e7ee;
+  --border: #dbdbdc;
+  --border-soft: #d0d0d3;
+  --fg: #383a42;
+  --fg-dim: #5c5f6a;
+  --fg-faint: #6e717c;
+  --fg-bright: #1d1f24;
+  --accent: #4078f2;
+  --accent-bg: rgba(64, 120, 242, 0.14);
+  --green: #50a14f;
+  --red: #e45649;
+  --yellow: #b07d00;
+  --purple: #a626a4;
+  --orange: #986801;
+  --cyan: #0184bc;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  --scrim: rgba(40, 44, 52, 0.28);
+}
+
+:root {
+  --font-ui: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Zed Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 5px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+html {
+  overflow: clip;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+::selection {
+  background: var(--accent-bg);
+}
+
+input,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+textarea {
+  user-select: text;
+}
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 1px 5px;
+  border: 1px solid var(--border-soft);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--bg-elev);
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+
+/* thin scrollbars, like an editor */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-soft) transparent;
+}
+
+/* ---- FullCalendar, themed to match ---- */
+.fc {
+  --fc-border-color: var(--border-soft);
+  --fc-page-bg-color: var(--bg);
+  --fc-neutral-bg-color: var(--bg-panel);
+  --fc-neutral-text-color: var(--fg-dim);
+  --fc-today-bg-color: var(--accent-bg);
+  --fc-event-text-color: var(--fg-bright);
+  --fc-list-event-hover-bg-color: var(--bg-hover);
+  --fc-highlight-color: var(--bg-sel);
+  --fc-non-business-color: transparent;
+  font-family: var(--font-ui);
+  font-size: 12px;
+}
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number,
+.fc .fc-list-day-text,
+.fc .fc-list-day-side-text {
+  color: var(--fg-dim);
+  text-decoration: none;
+  font-weight: 500;
+}
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: var(--accent);
+  font-weight: 700;
+}
+.fc .fc-daygrid-day.fc-day-other .fc-daygrid-day-number {
+  opacity: 0.45;
+}
+.fc .fc-highlight {
+  background: var(--bg-sel);
+  opacity: 1;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.fc .fc-event {
+  border: 0;
+  border-radius: 3px;
+  padding: 0 4px;
+  cursor: pointer;
+}
+.fc .fc-daygrid-event {
+  margin-top: 1px;
+}
+.fc .ev-due {
+  --fc-event-bg-color: color-mix(in srgb, var(--red) 28%, var(--bg));
+  --fc-event-border-color: var(--red);
+  background: var(--fc-event-bg-color);
+  box-shadow: inset 2px 0 0 var(--red);
+}
+.fc .ev-start {
+  --fc-event-bg-color: color-mix(in srgb, var(--accent) 24%, var(--bg));
+  --fc-event-border-color: var(--accent);
+  background: var(--fc-event-bg-color);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.fc .fc-event-title {
+  color: var(--fg-bright);
+}
+.fc .fc-scrollgrid {
+  border-color: var(--border-soft);
+}
+.fc .fc-list {
+  border-color: var(--border-soft);
+}
+.fc .fc-list-event td {
+  border-color: var(--border-soft);
+}
+.fc .fc-list-day-cushion {
+  background: var(--bg-panel);
+}
+.fc .fc-more-link {
+  color: var(--fg-dim);
+  font-size: 11px;
+}
