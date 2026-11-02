@@ -1,19 +1,19 @@
-/* Palette: Zed "One Dark" / "One Light". Everything else reads these variables. */
+/* Palette: high-contrast One Dark / One Light. Everything else reads these variables. */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #282c34;
-  --bg-panel: #21252b;
-  --bg-elev: #2c313a;
-  --bg-hover: #2f343e;
-  --bg-sel: #3a4150;
-  --bg-sel-dim: #31363f;
-  --border: #181a1f;
-  --border-soft: #3b4048;
-  --fg: #abb2bf;
-  --fg-dim: #9aa3b5;
-  --fg-faint: #8891aa;
-  --fg-bright: #dce0e5;
+  --bg: #1e2228;
+  --bg-panel: #16191e;
+  --bg-elev: #252a32;
+  --bg-hover: #2a2f38;
+  --bg-sel: #353c4a;
+  --bg-sel-dim: #2b3038;
+  --border: #0e1014;
+  --border-soft: #2f343c;
+  --fg: #d4d8e0;
+  --fg-dim: #bec4d0;
+  --fg-faint: #b8c0cc;
+  --fg-bright: #f4f6f8;
   --accent: #61afef;
   --accent-bg: rgba(97, 175, 239, 0.16);
   --green: #98c379;
@@ -36,10 +36,10 @@
   --bg-sel-dim: #e4e7ee;
   --border: #dbdbdc;
   --border-soft: #d0d0d3;
-  --fg: #383a42;
-  --fg-dim: #5c5f6a;
-  --fg-faint: #6e717c;
-  --fg-bright: #1d1f24;
+  --fg: #2a2c33;
+  --fg-dim: #454851;
+  --fg-faint: #565964;
+  --fg-bright: #111318;
   --accent: #4078f2;
   --accent-bg: rgba(64, 120, 242, 0.14);
   --green: #50a14f;
@@ -108,7 +108,7 @@ kbd {
   border-bottom-width: 2px;
   border-radius: 4px;
   background: var(--bg-elev);
-  color: var(--fg-dim);
+  color: var(--fg);
   white-space: nowrap;
 }
 
